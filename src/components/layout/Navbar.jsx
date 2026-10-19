@@ -26,6 +26,14 @@ export default function Navbar() {
     }
   }
 
+  // Lista de categorías fijas/dinámicas con la estructura solicitada
+  const navCategories = categories && categories.length > 0 ? categories : [
+    { slug: 'perfumes', nombre: 'Perfumes' },
+    { slug: 'carteras', nombre: 'Carteras' },
+    { slug: 'sandalias', nombre: 'Sandalias' },
+    { slug: 'zapatos', nombre: 'Zapatos' }
+  ]
+
   return (
     <>
       {/* Barra superior */}
@@ -36,34 +44,38 @@ export default function Navbar() {
       <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
         <div className="navbar__inner container">
 
-          {/* Logo */}
+          {/* Logo y Nombre de Marca */}
           <Link to="/" className="navbar__logo" aria-label="Inicio — Estilos Gissel">
             <img src="/logo_sin_fondo.webp" alt="Estilos Gissel" />
+            <span className="navbar__brand-name">STILOS GISSEL</span>
           </Link>
 
-          {/* Navegacion central dinamica */}
+          {/* Categorias principales con subcategorias de genero */}
           <nav className="navbar__nav" aria-label="Categorias principales">
-            {categories.map(cat => (
+            {navCategories.map(cat => (
               <div key={cat.slug} className="navbar__nav-item">
                 <NavLink
-                  to={`/${cat.slug}`}
+                  to={`/categoria/${cat.slug}`}
                   className={({ isActive }) =>
                     `navbar__link ${isActive ? 'navbar__link--active' : ''}`
                   }
                 >
                   {cat.nombre}
                 </NavLink>
-                {/* Mega menu genero */}
                 <div className="navbar__dropdown">
                   <NavLink
-                    to={`/${cat.slug}/mujer`}
-                    className="navbar__dropdown-link"
+                    to={`/categoria/${cat.slug}/mujer`}
+                    className={({ isActive }) =>
+                      `navbar__dropdown-link ${isActive ? 'active' : ''}`
+                    }
                   >
                     Mujer
                   </NavLink>
                   <NavLink
-                    to={`/${cat.slug}/hombre`}
-                    className="navbar__dropdown-link"
+                    to={`/categoria/${cat.slug}/hombre`}
+                    className={({ isActive }) =>
+                      `navbar__dropdown-link ${isActive ? 'active' : ''}`
+                    }
                   >
                     Hombre
                   </NavLink>
@@ -86,7 +98,6 @@ export default function Navbar() {
               </svg>
             </button>
 
-            {/* Burger mobile */}
             <button
               id="navbar-menu-btn"
               className={`navbar__burger ${menuOpen ? 'navbar__burger--open' : ''}`}
@@ -120,13 +131,13 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* Mobile menu dinamico */}
+      {/* Mobile menu */}
       <div className={`navbar__mobile-menu ${menuOpen ? 'navbar__mobile-menu--open' : ''}`}>
         <nav aria-label="Menu movil">
-          {categories.map(cat => (
+          {navCategories.map(cat => (
             <div key={cat.slug} className="navbar__mobile-category">
               <Link
-                to={`/${cat.slug}`}
+                to={`/categoria/${cat.slug}`}
                 className="navbar__mobile-link"
                 onClick={() => setMenuOpen(false)}
               >
@@ -134,14 +145,14 @@ export default function Navbar() {
               </Link>
               <div className="navbar__mobile-sub">
                 <Link
-                  to={`/${cat.slug}/mujer`}
+                  to={`/categoria/${cat.slug}/mujer`}
                   className="navbar__mobile-sublink"
                   onClick={() => setMenuOpen(false)}
                 >
                   Mujer
                 </Link>
                 <Link
-                  to={`/${cat.slug}/hombre`}
+                  to={`/categoria/${cat.slug}/hombre`}
                   className="navbar__mobile-sublink"
                   onClick={() => setMenuOpen(false)}
                 >
