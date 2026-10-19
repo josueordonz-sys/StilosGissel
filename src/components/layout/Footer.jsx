@@ -1,39 +1,42 @@
 import { Link } from 'react-router-dom'
-import { useCategories } from '../../hooks/useCategories'
 import './Footer.css'
 
 export default function Footer() {
-  const { categories } = useCategories()
-
   return (
     <footer className="footer">
       <div className="footer__inner container">
 
-        {/* Logo y descripcion */}
+        {/* Brand */}
         <div className="footer__brand">
-          <Link to="/" aria-label="Inicio">
+          <Link to="/" aria-label="Inicio" className="footer__brand-link">
             <img
               src="/logo_sin_fondo.webp"
               alt="Estilos Gissel"
               className="footer__logo"
             />
+            <span className="footer__brand-name">STILOS GISSEL</span>
           </Link>
-          <p className="footer__tagline body-sm">
+          <p className="footer__tagline">
             Moda con caracter. Estilo sin compromiso.
           </p>
         </div>
 
-        {/* Categorias Dinamicas */}
+        {/* Categorias */}
         <div className="footer__col">
           <h3 className="footer__heading overline">Categorias</h3>
           <ul className="footer__list">
-            {categories.map(cat => (
-              <li key={cat.slug}>
-                <Link to={`/${cat.slug}`} className="footer__link">
-                  {cat.nombre}
-                </Link>
-              </li>
-            ))}
+            <li>
+              <Link to="/perfumes" className="footer__link">Perfumes</Link>
+            </li>
+            <li>
+              <Link to="/carteras" className="footer__link">Carteras</Link>
+            </li>
+            <li>
+              <Link to="/sandalias" className="footer__link">Sandalias</Link>
+            </li>
+            <li>
+              <Link to="/zapatos" className="footer__link">Zapatos</Link>
+            </li>
           </ul>
         </div>
 
@@ -41,17 +44,22 @@ export default function Footer() {
         <div className="footer__col">
           <h3 className="footer__heading overline">Por genero</h3>
           <ul className="footer__list">
-            {categories.map(cat => (
-              <li key={cat.slug}>
-                <Link to={`/${cat.slug}/mujer`} className="footer__link">
-                  {cat.nombre} Mujer
-                </Link>
-              </li>
-            ))}
+            <li>
+              <Link to="/perfumes/mujer" className="footer__link">Perfumes Mujer</Link>
+            </li>
+            <li>
+              <Link to="/carteras/mujer" className="footer__link">Carteras Mujer</Link>
+            </li>
+            <li>
+              <Link to="/sandalias/mujer" className="footer__link">Sandalias Mujer</Link>
+            </li>
+            <li>
+              <Link to="/zapatos/mujer" className="footer__link">Zapatos Mujer</Link>
+            </li>
           </ul>
         </div>
 
-        {/* Info */}
+        {/* Informacion */}
         <div className="footer__col">
           <h3 className="footer__heading overline">Informacion</h3>
           <ul className="footer__list">
@@ -67,8 +75,8 @@ export default function Footer() {
       <div className="footer__bottom container">
         <div className="footer__divider" />
         <div className="footer__bottom-content">
-          <p className="body-sm">
-            &copy; {new Date().getFullYear()} Estilos Gissel. Todos los derechos reservados.
+          <p className="footer__copyright">
+            &copy; {new Date().getFullYear()} Stilos Gissel. Todos los derechos reservados.
           </p>
         </div>
       </div>

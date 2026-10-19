@@ -1,7 +1,10 @@
 .footer {
-  background: var(--color-black-soft);
-  border-top: 1px solid var(--color-black-light);
+  background-color: #121212;
+  color: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin-top: var(--space-3xl);
+  position: relative;
+  z-index: 10;
 }
 
 .footer__inner {
@@ -12,20 +15,47 @@
   padding-bottom: var(--space-2xl);
 }
 
+.footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.footer__brand-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  text-decoration: none;
+}
+
 .footer__logo {
-  height: 50px;
+  height: 48px;
   width: auto;
-  margin-bottom: var(--space-md);
+  object-fit: contain;
+}
+
+.footer__brand-name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .footer__tagline {
-  max-width: 200px;
+  max-width: 260px;
   font-style: italic;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #d8d2c8;
 }
 
 .footer__heading {
   margin-bottom: var(--space-lg);
-  color: var(--color-gold);
+  color: #c9a96e;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  font-weight: 600;
 }
 
 .footer__list {
@@ -35,33 +65,37 @@
 }
 
 .footer__link {
-  font-size: 0.78rem;
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  color: var(--color-gray-light);
-  transition: color var(--transition-fast);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: #c4beb4;
+  transition: color var(--transition-fast), transform var(--transition-fast);
   cursor: pointer;
+  display: inline-block;
 }
 
 .footer__link:hover {
-  color: var(--color-white-off);
+  color: #ffffff;
+  transform: translateX(2px);
 }
 
 .footer__link--text {
   cursor: default;
+  color: #a49e94;
 }
 
 .footer__link--text:hover {
-  color: var(--color-gray-light);
+  color: #a49e94;
+  transform: none;
 }
 
 .footer__bottom {
-  padding-bottom: var(--space-lg);
+  padding-bottom: var(--space-xl);
 }
 
 .footer__divider {
   height: 1px;
-  background: var(--color-black-light);
+  background: rgba(255, 255, 255, 0.1);
   margin-bottom: var(--space-lg);
 }
 
@@ -69,6 +103,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.footer__copyright {
+  color: #8c867c;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-align: center;
 }
 
 /* Responsive */
@@ -82,5 +123,6 @@
 @media (max-width: 560px) {
   .footer__inner {
     grid-template-columns: 1fr;
+    gap: var(--space-lg);
   }
 }
