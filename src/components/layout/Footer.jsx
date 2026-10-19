@@ -11,10 +11,10 @@ export default function Footer() {
           <Link to="/" aria-label="Inicio" className="footer__brand-link">
             <img
               src="/logo_sin_fondo.webp"
-              alt="Estilos Gissel"
+              alt="S’TILOS GISSEL"
               className="footer__logo"
             />
-            <span className="footer__brand-name">STILOS GISSEL</span>
+            <span className="footer__brand-name">S’TILOS GISSEL</span>
           </Link>
           <p className="footer__tagline">
             Moda con caracter. Estilo sin compromiso.
@@ -76,7 +76,7 @@ export default function Footer() {
         <div className="footer__divider" />
         <div className="footer__bottom-content">
           <p className="footer__copyright">
-            &copy; {new Date().getFullYear()} Stilos Gissel. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} S’TILOS GISSEL. Todos los derechos reservados.
           </p>
         </div>
       </div>

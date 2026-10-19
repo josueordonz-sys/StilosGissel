@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Sandalia minimalista -->
+  <path d="M12 44c0-3 6-8 20-8s20 5 20 8-8 6-20 6-20-3-20-6z" fill="#d1b89d"/>
+  <path d="M18 42c6-10 14-16 22-16" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+  <path d="M26 36c4-6 10-10 16-10" stroke="#b8973b" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

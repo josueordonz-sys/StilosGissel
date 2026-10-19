@@ -1,11 +1,13 @@
 import { useParams, Link } from 'react-router-dom'
 import { useProduct, useProducts } from '../hooks/useProducts'
+import { useCart } from '../context/CartContext'
 import ProductGrid from '../components/ui/ProductGrid'
 import './ProductDetail.css'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const { product, loading } = useProduct(id)
+  const { addToCart } = useCart()
 
   const { products: relatedProducts, loading: loadingRelated } = useProducts({
     category: product?.categoria,
@@ -49,7 +51,7 @@ export default function ProductDetail() {
 
   // Mensaje de consulta formal sin emojis
   const whatsappMessage = encodeURIComponent(
-    `Hola Estilos Gissel. Deseo consultar disponibilidad del producto: ${product.nombre} (Referencia: ${product.id}).`
+    `Hola S’TILOS GISSEL. Deseo consultar disponibilidad del producto: ${product.nombre} (Referencia: ${product.id}).`
   )
   const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`
 
@@ -91,6 +93,7 @@ export default function ProductDetail() {
           {/* Información */}
           <div className="product-detail__info">
             <div className="product-detail__meta">
+              {product.marca && <span className="tag tag--brand">{product.marca}</span>}
               <span className="overline">{product.categoria}</span>
               {product.genero && <span className="tag">{product.genero}</span>}
             </div>
@@ -105,16 +108,29 @@ export default function ProductDetail() {
 
             <div className="product-detail__desc">
               <h2 className="overline">Descripcion</h2>
-              <p>{product.descripcion || 'Pieza seleccionada con los mas altos estandares de calidad y sofisticacion de Estilos Gissel.'}</p>
+              <p>{product.descripcion || 'Pieza seleccionada con los más altos estándares de calidad y sofisticación de S’TILOS GISSEL.'}</p>
             </div>
 
             {/* Acciones */}
             <div className="product-detail__actions">
+              <button
+                type="button"
+                className="btn btn-primary product-detail__btn-order"
+                onClick={() => addToCart(product, null, 1, true)}
+                id="btn-add-to-cart-detail"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ marginRight: '6px' }}>
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                  <path d="M3 6h18" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+                Agregar a la Bolsa
+              </button>
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-primary product-detail__btn-order"
+                className="btn btn-outline product-detail__btn-order"
                 id="btn-whatsapp-inquire"
               >
                 Consultar Disponibilidad

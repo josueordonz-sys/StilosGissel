@@ -1,71 +1,134 @@
-import { Outlet, Link } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import './AdminLayout.css'
 
+const NAV_ITEMS = [
+  { to: '/admin',             label: 'Dashboard',       icon: ChartIcon,    end: true },
+  { to: '/admin/inventario',  label: 'Inventario',      icon: BoxIcon },
+  { to: '/admin/categorias',  label: 'Categorias',      icon: TagIcon },
+  { to: '/admin/ventas',      label: 'Zona de Cobro',   icon: CashIcon },
+  { to: '/admin/historial',   label: 'Historial Días',  icon: CalendarIcon },
+  { to: '/admin/pedidos',     label: 'Pedidos Online',  icon: BagIcon },
+  { to: '/admin/roles',       label: 'Roles y Accesos', icon: ShieldIcon },
+]
+
 export default function AdminLayout() {
+  const navigate = useNavigate()
+
   const handleLogout = () => {
     sessionStorage.removeItem('eg_admin_session')
+    sessionStorage.removeItem('eg_admin_role')
+    navigate('/admin', { replace: true })
     window.location.reload()
   }
 
   return (
     <div className="admin-app">
-      {/* Barra Superior Exclusiva de Administración */}
-      <header className="admin-topbar">
-        <div className="admin-topbar__inner container">
-          <div className="admin-topbar__brand">
-            <img src="/logo_sin_fondo.webp" alt="Stilos Gissel" className="admin-topbar__logo" />
-            <div className="admin-topbar__titles">
-              <span className="admin-topbar__brand-name">STILOS GISSEL</span>
-              <span className="admin-topbar__tag">PORTAL PRIVADO</span>
-            </div>
-          </div>
-
-          <div className="admin-topbar__actions">
-            <div className="admin-status-indicator">
-              <span className="status-dot" />
-              <span className="body-sm status-text">Supabase Conectado</span>
-            </div>
-
-            <a
-              href="/"
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-ghost admin-topbar__btn"
-              title="Abrir la tienda del cliente en otra pestaña"
-            >
-              Ver Tienda Pública
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: '6px' }}>
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-            </a>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="btn btn-outline admin-topbar__btn"
-            >
-              Cerrar Sesión
-            </button>
+      {/* Sidebar */}
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar__brand">
+          <img src="/logo_sin_fondo.webp" alt="Stilos Gissel" className="admin-sidebar__logo" />
+          <div>
+            <p className="admin-sidebar__brand-name">STILOS GISSEL</p>
+            <p className="admin-sidebar__tag">PORTAL PRIVADO</p>
           </div>
         </div>
-      </header>
 
-      {/* Contenido Principal de Administración */}
-      <main className="admin-main">
-        <Outlet />
-      </main>
+        <nav className="admin-sidebar__nav" aria-label="Menu de administración">
+          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `admin-nav-item ${isActive ? 'admin-nav-item--active' : ''}`
+              }
+            >
+              <Icon />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </nav>
 
-      {/* Pie de Página Exclusivo de Administración */}
-      <footer className="admin-footer">
-        <div className="container admin-footer__inner">
-          <p className="body-sm">
-            &copy; {new Date().getFullYear()} Stilos Gissel — Sistema de Gestión Interna de Inventario
-          </p>
-          <span className="overline">Panel de Control Seguro</span>
+        <div className="admin-sidebar__footer">
+          <div className="admin-status-dot">
+            <span className="status-dot" />
+            <span className="status-text">Supabase Conectado</span>
+          </div>
+          <a href="/" target="_blank" rel="noreferrer" className="admin-sidebar__store-link">
+            Ver Tienda Publica
+          </a>
+          <button type="button" onClick={handleLogout} className="admin-sidebar__logout">
+            Cerrar Sesion
+          </button>
         </div>
-      </footer>
+      </aside>
+
+      {/* Main area */}
+      <div className="admin-body">
+        <main className="admin-main">
+          <Outlet />
+        </main>
+      </div>
     </div>
+  )
+}
+
+/* ── Inline SVG Icons ── */
+function ChartIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+    </svg>
+  )
+}
+function BoxIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+    </svg>
+  )
+}
+function TagIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+      <line x1="7" y1="7" x2="7.01" y2="7"/>
+    </svg>
+  )
+}
+function CashIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+      <line x1="1" y1="10" x2="23" y2="10"/>
+    </svg>
+  )
+}
+function BagIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+  )
+}
+function ShieldIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  )
+}
+function CalendarIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8"  y1="2" x2="8"  y2="6"/>
+      <line x1="3"  y1="10" x2="21" y2="10"/>
+    </svg>
   )
 }

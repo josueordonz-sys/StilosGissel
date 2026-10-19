@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Sudadera con capucha turquesa / cyan estilo Scuffers / Nude Project -->
+  <path d="M22 14c0-4.4 4.5-8 10-8s10 3.6 10 8c0 1.5-.5 3-1.4 4.2C38.2 17 35.2 16 32 16s-6.2 1-8.6 2.2C22.5 17 22 15.5 22 14z" fill="#00bcd4"/>
+  <path d="M24 18c2.4-1.2 5.1-2 8-2s5.6.8 8 2l14 8-4 13-8-4v21H20V35l-8 4-4-13 16-8z" fill="#26c6da"/>
+  <path d="M24 18l8 7 8-7c-2.4-1.2-5.1-2-8-2s-5.6.8-8 2z" fill="#00acc1"/>
+  <!-- Cordones -->
+  <path d="M28 22v8M36 22v8" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Bolsillo canguro -->
+  <path d="M24 45h16l-3-9H27l-3 9z" fill="#00acc1" opacity="0.8"/>
+  <!-- Puños y bajo acanalado -->
+  <rect x="20" y="55" width="24" height="3" fill="#0097a7" rx="1"/>
+  <rect x="8" y="34" width="7" height="3" fill="#0097a7" rx="1" transform="rotate(-30 8 34)"/>
+  <rect x="49" y="37" width="7" height="3" fill="#0097a7" rx="1" transform="rotate(30 49 37)"/>
+</svg>

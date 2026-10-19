@@ -266,5 +266,114 @@ export const MOCK_PRODUCTS = [
     imagen_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80',
     destacado: false,
     nuevo: true
+  },
+
+  // --- ROPA / CAMISAS (ESTILO STREETWEAR DE REFERENCIA) ---
+  {
+    id: 'ropa-01',
+    nombre: 'OG Puffer Jacket Black',
+    categoria: 'camisas',
+    genero: 'hombre',
+    precio: 8452,
+    marca: 'Street Luxury',
+    descripcion: 'Chaqueta acolchada volumétrica con capucha envolvente, relleno térmico de alta densidad y cremallera frontal sellada.',
+    imagen_url: 'https://images.unsplash.com/photo-1544923246-77307dd654cb?auto=format&fit=crop&w=1000&q=80',
+    destacado: true,
+    nuevo: false,
+    badge: 'Most Wanted',
+    colores: [
+      { hex: '#111111', name: 'Black', defaultActive: true },
+      { hex: '#2d4b3e', name: 'Dark Green' }
+    ]
+  },
+  {
+    id: 'ropa-02',
+    nombre: 'OG Puffer Jacket Green',
+    categoria: 'camisas',
+    genero: 'hombre',
+    precio: 8452,
+    marca: 'Street Luxury',
+    descripcion: 'Versión Verde Bosque de la chaqueta OG Puffer con corte boxy crop y tejido exterior hidrófugo.',
+    imagen_url: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=1000&q=80',
+    destacado: true,
+    nuevo: false,
+    badge: 'Most Wanted',
+    colores: [
+      { hex: '#111111', name: 'Black' },
+      { hex: '#2d4b3e', name: 'Dark Green', defaultActive: true }
+    ]
+  },
+  {
+    id: 'ropa-03',
+    nombre: 'Beast Zip-Up Hoodie Black',
+    categoria: 'camisas',
+    genero: 'hombre',
+    precio: 3654,
+    marca: 'Nude Concept',
+    descripcion: 'Sudadera con cremallera completa confeccionada en algodón orgánico cepillado de 480 GSM con bordado tipográfico tonal.',
+    imagen_url: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1000&q=80',
+    destacado: false,
+    nuevo: true,
+    badge: 'New In',
+    colores: [
+      { hex: '#1d2a44', name: 'Navy' },
+      { hex: '#484b50', name: 'Grey' },
+      { hex: '#f0ece1', name: 'Cream' },
+      { hex: '#111111', name: 'Black', defaultActive: true }
+    ]
+  },
+  {
+    id: 'ropa-04',
+    nombre: 'Beast Zip-Up Hoodie Navy',
+    categoria: 'camisas',
+    genero: 'hombre',
+    precio: 3654,
+    marca: 'Nude Concept',
+    descripcion: 'Sudadera con cremallera en tono Azul Noche profundo con tacto aterciopelado y puños con canalé grueso.',
+    imagen_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1000&q=80',
+    destacado: false,
+    nuevo: true,
+    badge: 'New In',
+    colores: [
+      { hex: '#f0ece1', name: 'Cream' },
+      { hex: '#484b50', name: 'Grey' },
+      { hex: '#1d2a44', name: 'Navy', defaultActive: true },
+      { hex: '#111111', name: 'Black' }
+    ]
+  },
+  {
+    id: 'ropa-05',
+    nombre: 'Heavyweight Boxy Shirt Black',
+    categoria: 'camisas',
+    genero: 'hombre',
+    precio: 1850,
+    marca: 'Studio Basics',
+    descripcion: 'Camisa de corte boxy en algodón de alto gramaje con cuello estructurado.',
+    imagen_url: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=1000&q=80',
+    destacado: false,
+    nuevo: true,
+    badge: 'New In',
+    colores: [
+      { hex: '#111111', name: 'Black', defaultActive: true },
+      { hex: '#eae5d9', name: 'Off-White' }
+    ]
+  },
+  {
+    id: 'ropa-06',
+    nombre: 'Camisa Popelín Estructurada Blanca',
+    categoria: 'camisas',
+    genero: 'mujer',
+    precio: 2200,
+    marca: 'Minimal Mode',
+    descripcion: 'Camisa clásica femenina oversize en popelín de algodón italiano con botones de nácar ocultos.',
+    imagen_url: 'https://images.unsplash.com/photo-1598554747436-c9293d6a588f?auto=format&fit=crop&w=1000&q=80',
+    destacado: true,
+    nuevo: true,
+    badge: 'Most Wanted',
+    colores: [
+      { hex: '#ffffff', name: 'Blanco', defaultActive: true },
+      { hex: '#40566e', name: 'Azul Claro' }
+    ]
   }
 ]
+

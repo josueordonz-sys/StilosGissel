@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- Cartera / bolso de piel -->
+  <path d="M24 24V16c0-4.4 3.6-8 8-8s8 3.6 8 8v8" stroke="#d4af37" stroke-width="3" stroke-linecap="round"/>
+  <path d="M12 24h40l-3 32H15L12 24z" fill="#2b2826"/>
+  <path d="M12 24l20 14 20-14" fill="#3a3633"/>
+  <circle cx="32" cy="38" r="3" fill="#d4af37"/>
+</svg>

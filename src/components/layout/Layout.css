@@ -2,9 +2,15 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .layout__main {
   flex: 1;
-  padding-top: var(--navbar-height);
+  padding-top: calc(30px + var(--navbar-height));
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
 }

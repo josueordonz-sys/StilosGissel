@@ -1,538 +1,307 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabaseClient'
-import { useCategories } from '../../hooks/useCategories'
-import ImageUploader from '../../components/ui/ImageUploader'
-import './AdminDashboard.css'
+import { useAdminAuth } from '../../hooks/useAdminAuth'
+import AdminAuthGate from '../../components/admin/AdminAuthGate'
+import '../admin/AdminDashboard.css'
 
 export default function AdminDashboard() {
-  const { categories, refetch: refetchCategories } = useCategories()
-  const [activeTab, setActiveTab] = useState('productos') // 'productos' | 'categorias'
-  const [isAuthorized, setIsAuthorized] = useState(false)
-  const [accessKeyInput, setAccessKeyInput] = useState('')
-  const [statusMessage, setStatusMessage] = useState({ text: '', type: '' })
+  const auth = useAdminAuth()
 
-  // Comprobar si se accede desde subdominio admin.* o si ya está autenticado localmente
-  useEffect(() => {
-    const host = window.location.hostname
-    const hasAdminSubdomain = host.startsWith('admin.')
-    const storedAuth = sessionStorage.getItem('eg_admin_session')
+  const [stats, setStats] = useState({
+    totalProductos: 0,
+    totalCategorias: 0,
+    ventasHoy: 0,
+    ingresosHoy: 0,
+    pedidosPendientes: 0,
+    totalPropietarios: 0,
+    // Totales por tienda
+    totalGissel: 0,
+    ventasGissel: 0,
+    totalShein: 0,
+    ventasShein: 0,
+  })
+  const [ventasRecientes, setVentasRecientes] = useState([])
+  const [pedidosRecientes, setPedidosRecientes] = useState([])
+  const [loading, setLoading] = useState(true)
 
-    if (hasAdminSubdomain || storedAuth === 'true') {
-      setIsAuthorized(true)
+  const loadStats = useCallback(async () => {
+    setLoading(true)
+    try {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      // Fetch propietarios para mapear IDs de Tienda Gissel y Shein
+      const [
+        { count: totalProductos },
+        { count: totalCategorias },
+        { data: ventasData },
+        { count: pedidosPendientes },
+        { count: totalPropietarios },
+        { data: ventasRec },
+        { data: pedidosRec },
+        { data: propietariosData },
+      ] = await Promise.all([
+        supabase.from('productos').select('*', { count: 'exact', head: true }),
+        supabase.from('categorias').select('*', { count: 'exact', head: true }),
+        supabase
+          .from('ventas')
+          .select('precio_venta, nombre_propietario, propietario_id')
+          .gte('fecha_venta', today.toISOString()),
+        supabase.from('pedidos').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+        supabase.from('propietarios').select('*', { count: 'exact', head: true }),
+        supabase
+          .from('ventas')
+          .select('id,nombre_producto,precio_venta,nombre_propietario,nombre_zona,canal,fecha_venta')
+          .order('fecha_venta', { ascending: false })
+          .limit(8),
+        supabase
+          .from('pedidos')
+          .select('id,nombre_producto,precio,nombre_cliente,estado,created_at')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabase
+          .from('propietarios')
+          .select('id, nombre')
+          .eq('activo', true),
+      ])
+
+      const ingresosHoy = (ventasData || []).reduce((sum, v) => sum + parseFloat(v.precio_venta || 0), 0)
+
+      // Identificar los IDs de Tienda Gissel y Tienda Shein
+      const propsMap = {}
+      ;(propietariosData || []).forEach(p => {
+        propsMap[p.id] = p.nombre
+      })
+
+      // También considerar los IDs literales usados en inventario
+      const isGissel = (propId, propNombre) => {
+        if (!propId && !propNombre) return false
+        const nombre = propsMap[propId] || propNombre || ''
+        return nombre.toLowerCase().includes('gissel') || propId === 'tienda-gissel'
+      }
+      const isShein = (propId, propNombre) => {
+        if (!propId && !propNombre) return false
+        const nombre = propsMap[propId] || propNombre || ''
+        return nombre.toLowerCase().includes('shein') || propId === 'tienda-shein'
+      }
+
+      const ventasArr = ventasData || []
+      const gisselVentas = ventasArr.filter(v => isGissel(v.propietario_id, v.nombre_propietario))
+      const sheinVentas  = ventasArr.filter(v => isShein(v.propietario_id, v.nombre_propietario))
+
+      const totalGissel = gisselVentas.reduce((s, v) => s + parseFloat(v.precio_venta || 0), 0)
+      const totalShein  = sheinVentas.reduce((s, v) => s + parseFloat(v.precio_venta || 0), 0)
+
+      setStats({
+        totalProductos: totalProductos || 0,
+        totalCategorias: totalCategorias || 0,
+        ventasHoy: ventasArr.length,
+        ingresosHoy,
+        pedidosPendientes: pedidosPendientes || 0,
+        totalPropietarios: totalPropietarios || 0,
+        totalGissel,
+        ventasGissel: gisselVentas.length,
+        totalShein,
+        ventasShein: sheinVentas.length,
+      })
+      setVentasRecientes(ventasRec || [])
+      setPedidosRecientes(pedidosRec || [])
+    } catch (err) {
+      console.error('Error cargando stats:', err)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  // Productos
-  const [productsList, setProductsList] = useState([])
-  const [loadingProducts, setLoadingProducts] = useState(false)
-
-  // Formulario Producto
-  const [productForm, setProductForm] = useState({
-    nombre: '',
-    categoria: '',
-    genero: 'mujer',
-    precio: '',
-    descripcion: '',
-    imagen_url: '',
-    destacado: false,
-    nuevo: true
-  })
-
-  // Formulario Categoría
-  const [categoryForm, setCategoryForm] = useState({
-    nombre: '',
-    slug: '',
-    descripcion: '',
-    imagen_url: '',
-    orden: 1
-  })
-
-  // Cargar productos desde Supabase
-  const loadProducts = async () => {
-    setLoadingProducts(true)
-    try {
-      const { data, error } = await supabase
-        .from('productos')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setProductsList(data || [])
-    } catch (err) {
-      console.error('Error cargando productos:', err)
-    } finally {
-      setLoadingProducts(false)
-    }
-  }
-
   useEffect(() => {
-    if (isAuthorized) {
-      loadProducts()
-    }
-  }, [isAuthorized])
+    if (auth.isAuthorized) loadStats()
+  }, [auth.isAuthorized, loadStats])
 
-  // Establecer primera categoría por defecto en el form de productos
-  useEffect(() => {
-    if (categories.length > 0 && !productForm.categoria) {
-      setProductForm(prev => ({ ...prev, categoria: categories[0].slug }))
-    }
-  }, [categories, productForm.categoria])
+  if (!auth.isAuthorized) return <AdminAuthGate auth={auth} />
 
-  // Desbloqueo manual / clave de acceso para desarrollo o subdominio
-  const handleUnlock = (e) => {
-    e.preventDefault()
-    if (accessKeyInput === 'Gissel2026' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      setIsAuthorized(true)
-      sessionStorage.setItem('eg_admin_session', 'true')
-      setStatusMessage({ text: 'Acceso autorizado exitosamente.', type: 'success' })
-    } else {
-      setStatusMessage({ text: 'Clave de acceso no valida para este portal.', type: 'error' })
-    }
-  }
-
-  // --- CREAR PRODUCTO ---
-  const handleCreateProduct = async (e) => {
-    e.preventDefault()
-    if (!productForm.nombre || !productForm.precio || !productForm.imagen_url || !productForm.categoria) {
-      setStatusMessage({ text: 'Por favor complete todos los campos obligatorios y seleccione una foto desde el dispositivo.', type: 'error' })
-      return
-    }
-
-    try {
-      const newProduct = {
-        nombre: productForm.nombre.trim(),
-        categoria: productForm.categoria.toLowerCase(),
-        genero: productForm.genero,
-        precio: parseFloat(productForm.precio),
-        descripcion: productForm.descripcion.trim(),
-        imagen_url: productForm.imagen_url,
-        destacado: Boolean(productForm.destacado),
-        nuevo: Boolean(productForm.nuevo)
-      }
-
-      const { error } = await supabase.from('productos').insert([newProduct])
-
-      if (error) throw error
-
-      setStatusMessage({ text: `Producto "${newProduct.nombre}" agregado exitosamente a Supabase con foto real.`, type: 'success' })
-      setProductForm({
-        nombre: '',
-        categoria: categories[0]?.slug || 'perfumes',
-        genero: 'mujer',
-        precio: '',
-        descripcion: '',
-        imagen_url: '',
-        destacado: false,
-        nuevo: true
-      })
-      loadProducts()
-    } catch (err) {
-      setStatusMessage({ text: `Error al guardar producto: ${err.message}`, type: 'error' })
-    }
-  }
-
-  // --- ELIMINAR PRODUCTO ---
-  const handleDeleteProduct = async (id, nombre) => {
-    if (!window.confirm(`¿Desea eliminar permanentemente el producto "${nombre}"?`)) return
-
-    try {
-      const { error } = await supabase.from('productos').delete().eq('id', id)
-      if (error) throw error
-
-      setStatusMessage({ text: `Producto "${nombre}" eliminado de la base de datos.`, type: 'success' })
-      loadProducts()
-    } catch (err) {
-      setStatusMessage({ text: `Error al eliminar: ${err.message}`, type: 'error' })
-    }
-  }
-
-  // --- CREAR CATEGORÍA ---
-  const handleCreateCategory = async (e) => {
-    e.preventDefault()
-    if (!categoryForm.nombre || !categoryForm.slug) {
-      setStatusMessage({ text: 'El nombre y slug de la categoría son obligatorios.', type: 'error' })
-      return
-    }
-
-    try {
-      const newCategory = {
-        nombre: categoryForm.nombre.trim(),
-        slug: categoryForm.slug.trim().toLowerCase().replace(/\s+/g, '-'),
-        descripcion: categoryForm.descripcion.trim(),
-        imagen_url: categoryForm.imagen_url || 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=1000&q=80',
-        orden: parseInt(categoryForm.orden, 10) || categories.length + 1
-      }
-
-      const { error } = await supabase.from('categorias').insert([newCategory])
-
-      if (error) throw error
-
-      setStatusMessage({ text: `Categoria "${newCategory.nombre}" creada. Ruta directa disponible: /${newCategory.slug}`, type: 'success' })
-      setCategoryForm({ nombre: '', slug: '', descripcion: '', imagen_url: '', orden: 1 })
-      refetchCategories()
-    } catch (err) {
-      setStatusMessage({ text: `Error al guardar categoria: ${err.message}`, type: 'error' })
-    }
-  }
-
-  if (!isAuthorized) {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-
-    return (
-      <div className="admin-auth-wrapper container section">
-        <div className="admin-auth-card">
-          <div className="admin-auth-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" strokeWidth="1.2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          </div>
-          <span className="overline">Portal Privado</span>
-          <h1 className="display-md">Panel de Administracion</h1>
-          <p className="body-sm admin-auth-desc">
-            Acceso restringido al subdominio corporativo autorizado. Ingrese su clave de autenticación privada para continuar.
-          </p>
-
-          <form onSubmit={handleUnlock} className="admin-auth-form">
-            <input
-              type="password"
-              placeholder="Clave de acceso de administrador..."
-              value={accessKeyInput}
-              onChange={e => setAccessKeyInput(e.target.value)}
-              className="admin-input"
-              autoFocus
-            />
-            <button type="submit" className="btn btn-primary">
-              Verificar Acceso
-            </button>
-          </form>
-
-          {statusMessage.text && (
-            <div className={`admin-status admin-status--${statusMessage.type}`}>
-              {statusMessage.text}
-            </div>
-          )}
-
-          {isLocal && (
-            <p className="body-sm" style={{ marginTop: '1.5rem', color: 'var(--color-gold)' }}>
-              Modo Local Detectado: Presiona "Verificar Acceso" para desbloquear directamente.
-            </p>
-          )}
-        </div>
-      </div>
-    )
-  }
+  const fmtLPS = (v) => `L ${Number(v).toLocaleString('es-HN', { minimumFractionDigits: 2 })}`
 
   return (
-    <div className="admin-dashboard container section">
-      {/* Cabecera Admin */}
-      <div className="admin-header">
+    <div className="admin-dashboard">
+      <div className="apage-header">
         <div>
-          <span className="overline">Panel Administrativo</span>
-          <h1 className="display-lg">Control de Catalogo Real</h1>
+          <span className="overline">Panel Principal</span>
+          <h1 className="apage-title">Dashboard</h1>
+          <p className="apage-subtitle">Vista general del negocio — actualizado en tiempo real</p>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="admin-tabs">
-        <button
-          type="button"
-          className={`admin-tab ${activeTab === 'productos' ? 'active' : ''}`}
-          onClick={() => setActiveTab('productos')}
-        >
-          Productos Reales ({productsList.length})
-        </button>
-        <button
-          type="button"
-          className={`admin-tab ${activeTab === 'categorias' ? 'active' : ''}`}
-          onClick={() => setActiveTab('categorias')}
-        >
-          Categorias ({categories.length})
+        <button className="a-btn a-btn-outline" onClick={loadStats}>
+          Actualizar
         </button>
       </div>
 
-      {statusMessage.text && (
-        <div className={`admin-status admin-status--${statusMessage.type}`}>
-          {statusMessage.text}
-        </div>
-      )}
+      {/* Totales del día por tienda */}
+      <div className="dash-stores-header">
+        <span className="overline" style={{ color: 'var(--color-gold-dark)', letterSpacing: '0.12em', fontSize: '0.7rem', fontWeight: 700 }}>
+          RESUMEN DEL DÍA POR TIENDA
+        </span>
+      </div>
 
-      {/* ================= PESTAÑA PRODUCTOS ================= */}
-      {activeTab === 'productos' && (
-        <div className="admin-content-grid">
-          {/* Formulario Crear Producto */}
-          <div className="admin-card">
-            <h2 className="display-md admin-card-title">Agregar Producto</h2>
-            <p className="body-sm admin-card-subtitle">
-              Sube las imágenes reales directamente desde el carrete de tu teléfono o archivos de tu computadora.
-            </p>
-
-            <form onSubmit={handleCreateProduct} className="admin-form">
-              <div className="form-group">
-                <label className="overline">Nombre del Producto *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Bolso Tote en Cuero Grano"
-                  value={productForm.nombre}
-                  onChange={e => setProductForm({ ...productForm, nombre: e.target.value })}
-                  className="admin-input"
-                />
-              </div>
-
-              {/* Subida de Imagen desde Dispositivo / Carrete */}
-              <div className="form-group">
-                <ImageUploader
-                  value={productForm.imagen_url}
-                  onChange={(url) => setProductForm({ ...productForm, imagen_url: url })}
-                  label="Foto del Producto (Desde Dispositivo / Carrete)"
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="overline">Categoria *</label>
-                  <select
-                    value={productForm.categoria}
-                    onChange={e => setProductForm({ ...productForm, categoria: e.target.value })}
-                    className="admin-input"
-                  >
-                    {categories.map(c => (
-                      <option key={c.slug} value={c.slug}>
-                        {c.nombre} (/{c.slug})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="overline">Genero *</label>
-                  <select
-                    value={productForm.genero}
-                    onChange={e => setProductForm({ ...productForm, genero: e.target.value })}
-                    className="admin-input"
-                  >
-                    <option value="mujer">Mujer</option>
-                    <option value="hombre">Hombre</option>
-                    <option value="unisex">Unisex</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="overline">Precio (Lempiras) *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  placeholder="Ej: 2850.00"
-                  value={productForm.precio}
-                  onChange={e => setProductForm({ ...productForm, precio: e.target.value })}
-                  className="admin-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="overline">Descripcion Detallada</label>
-                <textarea
-                  rows="3"
-                  placeholder="Notas aromaticas, materiales, detalles de confeccion..."
-                  value={productForm.descripcion}
-                  onChange={e => setProductForm({ ...productForm, descripcion: e.target.value })}
-                  className="admin-input admin-textarea"
-                />
-              </div>
-
-              <div className="form-checkboxes">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={productForm.destacado}
-                    onChange={e => setProductForm({ ...productForm, destacado: e.target.checked })}
-                  />
-                  <span>Marcar como Destacado (The Edit)</span>
-                </label>
-
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={productForm.nuevo}
-                    onChange={e => setProductForm({ ...productForm, nuevo: e.target.checked })}
-                  />
-                  <span>Marcar como Recien Llegado</span>
-                </label>
-              </div>
-
-              <button type="submit" className="btn btn-primary">
-                Guardar en Catalogo Real
-              </button>
-            </form>
+      <div className="dash-stores-grid">
+        {/* Tienda S'TILOS GISSEL */}
+        <div className="dash-store-card dash-store-card--gissel">
+          <div className="dash-store-card__badge">Tienda S'TILOS GISSEL</div>
+          <div className="dash-store-card__amount">
+            {loading ? <span className="dash-store-skeleton">Cargando...</span> : fmtLPS(stats.totalGissel)}
           </div>
+          <div className="dash-store-card__meta">
+            {stats.ventasGissel} venta{stats.ventasGissel !== 1 ? 's' : ''} hoy
+          </div>
+          <div className="dash-store-card__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+        </div>
 
-          {/* Tabla de Productos Existentes */}
-          <div className="admin-card">
-            <div className="admin-card-header">
-              <h2 className="display-md admin-card-title">Catalogo Actual</h2>
-              <button type="button" onClick={loadProducts} className="btn btn-ghost">
-                Actualizar
-              </button>
+        {/* Tienda SHEIN */}
+        <div className="dash-store-card dash-store-card--shein">
+          <div className="dash-store-card__badge">Tienda SHEIN</div>
+          <div className="dash-store-card__amount">
+            {loading ? <span className="dash-store-skeleton">Cargando...</span> : fmtLPS(stats.totalShein)}
+          </div>
+          <div className="dash-store-card__meta">
+            {stats.ventasShein} venta{stats.ventasShein !== 1 ? 's' : ''} hoy
+          </div>
+          <div className="dash-store-card__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Total combinado del día */}
+        <div className="dash-store-card dash-store-card--total">
+          <div className="dash-store-card__badge">Total del Día (Ambas Tiendas)</div>
+          <div className="dash-store-card__amount dash-store-card__amount--bold">
+            {loading ? <span className="dash-store-skeleton">Cargando...</span> : fmtLPS(stats.ingresosHoy)}
+          </div>
+          <div className="dash-store-card__meta">
+            {stats.ventasHoy} venta{stats.ventasHoy !== 1 ? 's' : ''} en total hoy
+          </div>
+          <div className="dash-store-card__icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats generales */}
+      <div className="a-stats-grid">
+        <div className="a-stat-card">
+          <span className="a-stat-label">Productos en Catálogo</span>
+          <span className="a-stat-value">{loading ? '—' : stats.totalProductos}</span>
+          <span className="a-stat-sub">{stats.totalCategorias} categorías activas</span>
+        </div>
+        <div className="a-stat-card">
+          <span className="a-stat-label">Pedidos Online Pendientes</span>
+          <span className="a-stat-value">{loading ? '—' : stats.pedidosPendientes}</span>
+          <span className="a-stat-sub">por confirmar o enviar</span>
+        </div>
+        <div className="a-stat-card">
+          <span className="a-stat-label">Consignatarios / Propietarios</span>
+          <span className="a-stat-value">{loading ? '—' : stats.totalPropietarios}</span>
+          <span className="a-stat-sub">registrados en el sistema</span>
+        </div>
+      </div>
+
+      <div className="dash-grid">
+        {/* Ventas recientes */}
+        <div className="a-card">
+          <div className="a-card-header">
+            <div>
+              <p className="a-card-title">Ventas Recientes</p>
+              <p className="a-card-subtitle">Últimos cobros registrados en zona de cobro</p>
             </div>
-
-            {loadingProducts ? (
-              <p className="body-sm" style={{ padding: '2rem 0' }}>Cargando catalogo...</p>
-            ) : productsList.length === 0 ? (
-              <div className="empty-catalog-box">
-                <p className="display-sm" style={{ color: 'var(--color-gold)' }}>Base de datos limpia</p>
-                <p className="body-sm" style={{ marginTop: '0.5rem' }}>
-                  No hay productos registrados en Supabase. Agrega el primer producto utilizando el formulario.
-                </p>
-              </div>
-            ) : (
-              <div className="admin-table-wrap">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Foto</th>
-                      <th>Nombre</th>
-                      <th>Categoria</th>
-                      <th>Genero</th>
-                      <th>Precio</th>
-                      <th>Accion</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {productsList.map(prod => (
-                      <tr key={prod.id}>
-                        <td>
-                          <img src={prod.imagen_url} alt={prod.nombre} className="table-thumb" />
-                        </td>
-                        <td>
-                          <strong>{prod.nombre}</strong>
-                        </td>
-                        <td>
-                          <span className="tag">{prod.categoria}</span>
-                        </td>
-                        <td>
-                          <span className="tag">{prod.genero}</span>
-                        </td>
-                        <td>L. {Number(prod.precio).toFixed(2)}</td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteProduct(prod.id, prod.nombre)}
-                            className="btn-table-delete"
-                            title="Eliminar producto"
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <a href="/admin/ventas" className="a-btn a-btn-outline a-btn-sm">Ver Todas</a>
+          </div>
+          <div className="a-table-wrap">
+            <table className="a-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Monto</th>
+                  <th>Vendido por</th>
+                  <th>Zona</th>
+                  <th>Canal</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ventasRecientes.length === 0 ? (
+                  <tr><td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>Sin ventas registradas aún</td></tr>
+                ) : ventasRecientes.map(v => (
+                  <tr key={v.id}>
+                    <td>{v.nombre_producto}</td>
+                    <td><strong>{fmtLPS(v.precio_venta)}</strong></td>
+                    <td>{v.nombre_propietario || '—'}</td>
+                    <td>{v.nombre_zona || '—'}</td>
+                    <td>
+                      <span className={`a-badge ${v.canal === 'online' ? 'a-badge--blue' : 'a-badge--gold'}`}>
+                        {v.canal}
+                      </span>
+                    </td>
+                    <td style={{ color: 'var(--color-text-muted)' }}>
+                      {new Date(v.fecha_venta).toLocaleDateString('es-HN')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
 
-      {/* ================= PESTAÑA CATEGORÍAS ================= */}
-      {activeTab === 'categorias' && (
-        <div className="admin-content-grid">
-          {/* Formulario Crear Categoría */}
-          <div className="admin-card">
-            <h2 className="display-md admin-card-title">Crear Categoria Dinamica</h2>
-            <p className="body-sm admin-card-subtitle">
-              Puedes crear cualquier categoria (ej: Relojes, Joyeria, Accesorios). La ruta se generará automáticamente como <code>/slug</code>.
-            </p>
-
-            <form onSubmit={handleCreateCategory} className="admin-form">
-              <div className="form-group">
-                <label className="overline">Nombre de la Categoria *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: Joyeria"
-                  value={categoryForm.nombre}
-                  onChange={e => {
-                    const val = e.target.value
-                    const generatedSlug = val.toLowerCase().trim().replace(/\s+/g, '-')
-                    setCategoryForm({
-                      ...categoryForm,
-                      nombre: val,
-                      slug: categoryForm.slug || generatedSlug
-                    })
-                  }}
-                  className="admin-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="overline">Slug URL (Ruta directa) *</label>
-                <div className="slug-input-prefix">
-                  <span>/</span>
-                  <input
-                    type="text"
-                    required
-                    placeholder="joyeria"
-                    value={categoryForm.slug}
-                    onChange={e => setCategoryForm({ ...categoryForm, slug: e.target.value.toLowerCase().trim() })}
-                    className="admin-input"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <ImageUploader
-                  value={categoryForm.imagen_url}
-                  onChange={(url) => setCategoryForm({ ...categoryForm, imagen_url: url })}
-                  label="Foto de Portada de la Categoria"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="overline">Descripcion de la Linea</label>
-                <textarea
-                  rows="2"
-                  placeholder="Breve detalle de la coleccion..."
-                  value={categoryForm.descripcion}
-                  onChange={e => setCategoryForm({ ...categoryForm, descripcion: e.target.value })}
-                  className="admin-input admin-textarea"
-                />
-              </div>
-
-              <button type="submit" className="btn btn-primary">
-                Crear Categoria
-              </button>
-            </form>
-          </div>
-
-          {/* Lista de Categorías Existentes */}
-          <div className="admin-card">
-            <h2 className="display-md admin-card-title">Categorias Registradas</h2>
-            <div className="category-admin-list">
-              {categories.map(cat => (
-                <div key={cat.slug} className="category-admin-item">
-                  <div className="category-admin-info">
-                    <span className="overline">Ruta: /{cat.slug}</span>
-                    <h3 className="category-admin-name">{cat.nombre}</h3>
-                    <p className="body-sm">{cat.descripcion}</p>
-                  </div>
-                  <a
-                    href={`/${cat.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn btn-ghost"
-                  >
-                    Ver Catalogo
-                  </a>
-                </div>
-              ))}
+        {/* Pedidos online pendientes */}
+        <div className="a-card">
+          <div className="a-card-header">
+            <div>
+              <p className="a-card-title">Pedidos Online</p>
+              <p className="a-card-subtitle">Solicitudes recientes desde la tienda pública</p>
             </div>
+            <a href="/admin/pedidos" className="a-btn a-btn-outline a-btn-sm">Gestionar</a>
+          </div>
+          <div className="a-table-wrap">
+            <table className="a-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cliente</th>
+                  <th>Monto</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pedidosRecientes.length === 0 ? (
+                  <tr><td colSpan="4" style={{ textAlign: 'center', color: 'var(--color-text-muted)', padding: '2rem' }}>Sin pedidos aún</td></tr>
+                ) : pedidosRecientes.map(p => (
+                  <tr key={p.id}>
+                    <td>{p.nombre_producto}</td>
+                    <td>{p.nombre_cliente}</td>
+                    <td>{fmtLPS(p.precio)}</td>
+                    <td>
+                      <span className={`a-badge ${
+                        p.estado === 'pendiente'  ? 'a-badge--gray'  :
+                        p.estado === 'confirmado' ? 'a-badge--blue'  :
+                        p.estado === 'enviado'    ? 'a-badge--gold'  :
+                        p.estado === 'entregado'  ? 'a-badge--green' :
+                        'a-badge--red'
+                      }`}>{p.estado}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

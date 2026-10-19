@@ -1,0 +1,1054 @@
+/* =====================================================
+   S'TILOS GISSEL — Facturación / POS & Zona de Cobro
+   Estética: Luxury Editorial Oficial (Marfil Cálido, Blanco, Dorado y Negro)
+   100% Full Width / Toda la pantalla
+   ===================================================== */
+
+.pos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  min-height: calc(100vh - 100px);
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  color: var(--color-text-main, #161514);
+}
+
+/* ─────────────────────────────────────────────────────
+   TOPBAR POS — PALETA OFICIAL DE LA PÁGINA
+   ───────────────────────────────────────────────────── */
+.pos-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  padding: 0.9rem 1.4rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pos-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.pos-topbar__title {
+  font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+  letter-spacing: 0.02em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pos-topbar__tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pos-sale-tab {
+  background: var(--color-surface-soft, #f4efe8);
+  color: var(--color-text-body, #44403c);
+  border: 1px solid var(--color-border, #e5dfd6);
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.18s ease;
+}
+
+.pos-sale-tab:hover {
+  background: var(--color-surface-muted, #ece6dc);
+  color: var(--color-text-main, #161514);
+}
+
+.pos-sale-tab.is-active {
+  background: var(--color-black, #121212);
+  color: #ffffff;
+  border-color: var(--color-black, #121212);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pos-sale-tab__close {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.pos-sale-tab__close:hover {
+  opacity: 1;
+}
+
+.pos-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.pos-btn-new-sale {
+  background: var(--color-gold, #9c7c44);
+  color: #ffffff;
+  border: 1px solid var(--color-gold, #9c7c44);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s ease;
+}
+
+.pos-btn-new-sale:hover {
+  background: var(--color-gold-dark, #7a5f30);
+  border-color: var(--color-gold-dark, #7a5f30);
+}
+
+.pos-btn-view-toggle {
+  background: #ffffff;
+  color: var(--color-text-body, #44403c);
+  border: 1px solid var(--color-border, #e5dfd6);
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s ease;
+}
+
+.pos-btn-view-toggle:hover {
+  background: var(--color-surface-soft, #f4efe8);
+  color: var(--color-text-main, #161514);
+}
+
+/* ─────────────────────────────────────────────────────
+   DESKTOP TWO-COLUMN LAYOUT — A TODA LA PANTALLA
+   ───────────────────────────────────────────────────── */
+.pos-desktop-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 1.25rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Panel Izquierdo */
+.pos-panel-left {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+}
+
+.pos-form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pos-form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-body, #44403c);
+  min-width: 110px;
+}
+
+.pos-form-label--scanner {
+  color: var(--color-gold-dark, #7a5f30);
+}
+
+.pos-input {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  color: var(--color-text-main, #161514);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.88rem;
+  border-radius: 4px;
+  font-family: inherit;
+  transition: all 0.18s ease;
+}
+
+.pos-input:focus {
+  outline: none;
+  border-color: var(--color-gold, #9c7c44);
+  box-shadow: 0 0 0 3px var(--color-gold-subtle, rgba(156, 124, 68, 0.12));
+}
+
+.pos-input--scanner {
+  border-color: var(--color-gold, #9c7c44);
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: var(--color-gold-subtle, rgba(156, 124, 68, 0.04));
+  color: var(--color-text-main, #161514);
+}
+
+.pos-input--scanner:focus {
+  border-color: var(--color-gold-dark, #7a5f30);
+}
+
+/* Tabla de Productos Disponibles */
+.pos-table-wrap {
+  flex: 1;
+  min-height: 380px;
+  max-height: 520px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.pos-table-wrap::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pos-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--color-border, #e5dfd6);
+  border-radius: 4px;
+}
+
+.pos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.pos-table th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface-soft, #f4efe8);
+  color: var(--color-text-main, #161514);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--color-border, #e5dfd6);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.pos-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--color-border-light, #f0ece5);
+  color: var(--color-text-body, #44403c);
+  vertical-align: middle;
+}
+
+.pos-table tr:hover {
+  background: var(--color-surface-soft, #faf8f5);
+  cursor: pointer;
+}
+
+.pos-code-badge {
+  font-family: monospace;
+  font-size: 0.76rem;
+  color: var(--color-text-muted, #78716c);
+}
+
+.pos-btn-add-mini {
+  background: var(--color-black, #121212);
+  color: #ffffff;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.pos-btn-add-mini:hover {
+  background: var(--color-gold, #9c7c44);
+}
+
+/* Controles Inferiores Izquierdos */
+.pos-left-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border, #e5dfd6);
+  flex-wrap: wrap;
+}
+
+.pos-discount-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #78716c);
+}
+
+.pos-discount-select {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  color: var(--color-text-main, #161514);
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─────────────────────────────────────────────────────
+   PANEL DERECHO — CARRITO DE COMPRA / VENTA
+   ───────────────────────────────────────────────────── */
+.pos-panel-right {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
+}
+
+.pos-cart-title {
+  font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border, #e5dfd6);
+}
+
+.pos-cart-table-wrap {
+  flex: 1;
+  min-height: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.pos-cart-table-wrap::-webkit-scrollbar {
+  width: 5px;
+}
+
+.pos-cart-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--color-border, #e5dfd6);
+  border-radius: 4px;
+}
+
+.pos-cart-qty-ctrl {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 4px;
+  background: #ffffff;
+}
+
+.pos-cart-qty-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-main, #161514);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.pos-cart-qty-btn:hover {
+  background: var(--color-surface-soft, #f4efe8);
+}
+
+.pos-cart-qty-num {
+  padding: 0 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-main, #161514);
+  min-width: 1.4rem;
+  text-align: center;
+}
+
+.pos-btn-del-item {
+  background: none;
+  border: none;
+  color: #b91c1c;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px 6px;
+  transition: color 0.15s ease;
+}
+
+.pos-btn-del-item:hover {
+  color: #dc2626;
+}
+
+/* Resumen Financiero */
+.pos-cart-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-surface-soft, #faf8f5);
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 6px;
+}
+
+.pos-summary-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: var(--color-text-body, #44403c);
+}
+
+.pos-summary-line--discount {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.pos-summary-line--total {
+  border-top: 1px solid var(--color-border, #e5dfd6);
+  padding-top: 0.65rem;
+  margin-top: 0.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-text-main, #161514);
+}
+
+.pos-summary-total-val {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-gold-dark, #7a5f30);
+}
+
+/* Botones de Acción del Carrito */
+.pos-cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.pos-btn-cart-secondary {
+  flex: 1;
+  background: var(--color-surface-soft, #f4efe8);
+  color: var(--color-text-main, #161514);
+  border: 1px solid var(--color-border, #e5dfd6);
+  padding: 0.85rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pos-btn-cart-secondary:hover {
+  background: var(--color-surface-muted, #ece6dc);
+}
+
+.pos-btn-cart-secondary--red {
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.2);
+}
+
+.pos-btn-cart-secondary--red:hover {
+  background: #fef2f2;
+}
+
+.pos-btn-cobrar {
+  flex: 2;
+  background: var(--color-black, #121212);
+  color: #ffffff;
+  border: 1px solid var(--color-black, #121212);
+  padding: 0.95rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.18s ease;
+}
+
+.pos-btn-cobrar:hover:not(:disabled) {
+  background: var(--color-gold-dark, #7a5f30);
+  border-color: var(--color-gold-dark, #7a5f30);
+  color: #ffffff;
+}
+
+.pos-btn-cobrar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────
+   VISTA MÓVIL DIRECTA — CÁMARA QR + CARRITO A TODA PANTALLA
+   (Sin catálogo redundante, directo a escanear y cobrar)
+   ───────────────────────────────────────────────────── */
+.pos-mobile-full-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Cabecera Móvil Elegante */
+.pos-mobile-brand-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  padding: 0.85rem 1.15rem;
+  border-radius: 8px;
+}
+
+.pos-mobile-brand-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.pos-mobile-brand-logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.pos-mobile-brand-name {
+  font-family: var(--font-display, serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+  margin: 0;
+}
+
+.pos-mobile-brand-sub {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-gold, #9c7c44);
+}
+
+.pos-mobile-cart-chip {
+  background: var(--color-gold-subtle, rgba(156, 124, 68, 0.1));
+  border: 1px solid var(--color-gold, #9c7c44);
+  color: var(--color-gold-dark, #7a5f30);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Tarjeta Cámara Escáner Móvil (100% Pantalla) */
+.pos-mobile-scanner-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+}
+
+.pos-mobile-scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #78716c);
+}
+
+.pos-mobile-scanner-badge {
+  color: var(--color-gold-dark, #7a5f30);
+  background: var(--color-gold-subtle, rgba(156, 124, 68, 0.1));
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Visor de Cámara */
+.pos-camera-viewport {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  border-radius: 8px;
+  background: #161514;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 2px solid var(--color-border, #e5dfd6);
+}
+
+.pos-camera-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pos-camera-reticle {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 2px dashed var(--color-gold, #c9a84c);
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.pos-camera-laser-gold {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: var(--color-gold, #c9a84c);
+  box-shadow: 0 0 10px var(--color-gold, #c9a84c), 0 0 20px #eab308;
+  animation: scanLaser 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes scanLaser {
+  from { top: 8%; opacity: 0.9; }
+  to { top: 92%; opacity: 0.9; }
+}
+
+.pos-camera-idle-text {
+  color: #ffffff;
+  padding: 1.5rem;
+}
+
+.pos-camera-idle-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-gold, #c9a84c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem auto;
+}
+
+.pos-btn-camera-toggle {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.18s ease;
+}
+
+.pos-btn-camera-toggle--start {
+  background: var(--color-gold, #9c7c44);
+  color: #ffffff;
+  border: 1px solid var(--color-gold, #9c7c44);
+}
+
+.pos-btn-camera-toggle--start:hover {
+  background: var(--color-gold-dark, #7a5f30);
+}
+
+.pos-btn-camera-toggle--stop {
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1px solid #b91c1c;
+}
+
+/* Carrito Móvil Directo */
+.pos-mobile-cart-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+}
+
+/* ─────────────────────────────────────────────────────
+   MODAL DE COBRO (Paleta Página S'TILOS GISSEL)
+   ───────────────────────────────────────────────────── */
+.pos-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 21, 20, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.pos-cobro-modal {
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleUp 0.22s ease-out;
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.pos-cobro-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--color-border, #e5dfd6);
+  background: var(--color-surface-soft, #faf8f5);
+}
+
+.pos-cobro-modal__title {
+  font-family: var(--font-display, serif);
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+  margin: 0;
+}
+
+.pos-cobro-modal__close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted, #78716c);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.pos-cobro-modal__body {
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.pos-total-display-box {
+  background: var(--color-gold-subtle, rgba(156, 124, 68, 0.08));
+  border: 1px solid rgba(156, 124, 68, 0.25);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.pos-total-display-sub {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-gold-dark, #7a5f30);
+  font-weight: 700;
+}
+
+.pos-total-display-val {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--color-text-main, #161514);
+  margin-top: 0.2rem;
+}
+
+.pos-payment-method-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.pos-method-pill {
+  padding: 0.65rem 0.4rem;
+  background: var(--color-surface-soft, #f4efe8);
+  border: 1px solid var(--color-border, #e5dfd6);
+  color: var(--color-text-body, #44403c);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.pos-method-pill.is-active {
+  background: var(--color-black, #121212);
+  color: #ffffff;
+  border-color: var(--color-black, #121212);
+}
+
+.pos-cash-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pos-cash-input {
+  background: #ffffff;
+  border: 2px solid var(--color-border, #e5dfd6);
+  color: var(--color-text-main, #161514);
+  font-family: var(--font-body, monospace);
+  font-size: 1.45rem;
+  font-weight: 700;
+  padding: 0.65rem 0.9rem;
+  border-radius: 6px;
+  text-align: right;
+  transition: border-color 0.18s ease;
+}
+
+.pos-cash-input:focus {
+  outline: none;
+  border-color: var(--color-gold, #9c7c44);
+}
+
+.pos-denominations {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.pos-denom-btn {
+  background: var(--color-surface-soft, #f4efe8);
+  border: 1px solid var(--color-border, #e5dfd6);
+  color: var(--color-text-main, #161514);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.4rem 0.65rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pos-denom-btn:hover {
+  background: var(--color-surface-muted, #ece6dc);
+  border-color: var(--color-gold, #9c7c44);
+}
+
+/* Vuelto / Cambio Result Box */
+.pos-vuelto-box {
+  padding: 0.9rem 1.15rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.pos-vuelto-box--success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.pos-vuelto-box--insufficient {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.pos-vuelto-val {
+  font-family: var(--font-body, monospace);
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.pos-cobro-modal__footer {
+  padding: 1.15rem 1.5rem;
+  border-top: 1px solid var(--color-border, #e5dfd6);
+  background: var(--color-surface-soft, #faf8f5);
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ─────────────────────────────────────────────────────
+   TICKET TÉRMICO CON LOGO (58mm / 80mm)
+   ───────────────────────────────────────────────────── */
+.thermal-ticket-container {
+  display: none;
+}
+
+.pos-ticket-modal {
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  max-width: 380px;
+  width: 100%;
+  padding: 1.5rem;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.thermal-ticket {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #000000;
+}
+
+.thermal-ticket__header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.thermal-ticket__logo {
+  max-width: 80px;
+  height: auto;
+  margin: 0 auto 6px auto;
+  display: block;
+}
+
+.thermal-ticket__brand {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.thermal-ticket__sub {
+  font-size: 10px;
+  margin: 2px 0;
+}
+
+.thermal-ticket__divider {
+  border: none;
+  border-top: 1px dashed #000000;
+  margin: 6px 0;
+}
+
+.thermal-ticket__meta {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.thermal-ticket__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+  margin: 4px 0;
+}
+
+.thermal-ticket__table th {
+  border-bottom: 1px dashed #000000;
+  padding: 2px 0;
+  text-align: left;
+}
+
+.thermal-ticket__table td {
+  padding: 3px 0;
+  vertical-align: top;
+}
+
+.thermal-ticket__totals {
+  margin-top: 6px;
+}
+
+.thermal-ticket__total-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+}
+
+.thermal-ticket__total-line--final {
+  font-size: 13px;
+  font-weight: 900;
+  border-top: 1px dashed #000;
+  border-bottom: 1px dashed #000;
+  padding: 3px 0;
+  margin: 4px 0;
+}
+
+.thermal-ticket__footer {
+  text-align: center;
+  font-size: 9px;
+  margin-top: 10px;
+}
+
+/* Reglas de Impresión (@media print) */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .thermal-ticket-container,
+  .thermal-ticket-container * {
+    visibility: visible;
+  }
+
+  .thermal-ticket-container {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+  }
+
+  @page {
+    margin: 0;
+    size: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .pos-desktop-layout {
+    grid-template-columns: 1fr;
+  }
+}

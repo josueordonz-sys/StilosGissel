@@ -50,9 +50,11 @@ export default function SearchResults() {
         <form onSubmit={handleSearchSubmit} className="search-form-page">
           <input
             type="search"
+            name="search"
+            aria-label="Buscar productos"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
-            placeholder="Buscar por nombre, nota olfativa o articulo..."
+            placeholder="Buscar por nombre, marca (Guess, Zara...), articulo..."
             className="search-input-page"
             id="page-search-input"
           />

@@ -1,0 +1,190 @@
+/* =====================================================
+   S'TILOS GISSEL — Admin Historial de Ventas por Día
+   ===================================================== */
+
+.hist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ─── Navegador de fecha ─── */
+.hist-date-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+}
+
+.hist-nav-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border, #e5dfd6);
+  background: var(--color-surface-soft, #f4efe8);
+  color: var(--color-text-body, #44403c);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+
+.hist-nav-btn:hover:not(:disabled) {
+  background: var(--color-gold-subtle, rgba(156,124,68,0.1));
+  border-color: var(--color-gold, #9c7c44);
+  color: var(--color-gold-dark, #7a5f30);
+  transform: scale(1.06);
+}
+
+.hist-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.hist-date-center {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.hist-date-badge {
+  display: inline-block;
+  background: var(--color-gold, #9c7c44);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.6rem;
+  border-radius: 100px;
+}
+
+.hist-date-display {
+  font-family: var(--font-body, 'Montserrat', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+  text-transform: capitalize;
+}
+
+/* Input de fecha oculto estilizado */
+.hist-date-input {
+  border: 1px solid var(--color-border, #e5dfd6);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--color-text-body, #44403c);
+  background: var(--color-surface-soft, #f4efe8);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.hist-date-input:focus {
+  outline: none;
+  border-color: var(--color-gold, #9c7c44);
+  box-shadow: 0 0 0 3px rgba(156,124,68,0.12);
+}
+
+/* ─── Accesos rápidos ─── */
+.hist-quick-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hist-quick-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 100px;
+  border: 1px solid var(--color-border, #e5dfd6);
+  background: #ffffff;
+  color: var(--color-text-body, #44403c);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.hist-quick-btn:hover,
+.hist-quick-btn.is-active {
+  background: var(--color-gold, #9c7c44);
+  border-color: var(--color-gold, #9c7c44);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ─── Cards de tienda (reutiliza las del dashboard) ─── */
+.hist-cards-gap {
+  margin-bottom: 0.25rem;
+}
+
+/* ─── Detalle de ventas ─── */
+.hist-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .hist-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hist-table-card {
+  border-top: 3px solid transparent;
+}
+
+.hist-table--gissel {
+  border-top-color: var(--color-gold, #9c7c44);
+}
+
+.hist-table--shein {
+  border-top-color: var(--color-text-main, #161514);
+}
+
+/* ─── Loading ─── */
+.hist-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  color: var(--color-text-muted, #78716c);
+  font-size: 0.88rem;
+}
+
+.hist-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border, #e5dfd6);
+  border-top-color: var(--color-gold, #9c7c44);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 600px) {
+  .hist-date-display {
+    font-size: 0.9rem;
+  }
+
+  .hist-nav-btn {
+    width: 34px;
+    height: 34px;
+  }
+}

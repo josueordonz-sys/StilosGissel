@@ -2,15 +2,24 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useSearchParams, useNavigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import AdminLayout from './components/admin/AdminLayout'
+import { CartProvider } from './context/CartContext'
 import Home from './pages/Home'
 import Category from './pages/Category'
 import ProductDetail from './pages/ProductDetail'
 import SearchResults from './pages/SearchResults'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminRestricted from './pages/admin/AdminRestricted'
 import NotFound from './pages/NotFound'
 
-// Bloquea intentos de acceder con query ?admin desde el dominio público del cliente
+// Admin pages
+import AdminDashboard   from './pages/admin/AdminDashboard'
+import AdminInventario  from './pages/admin/AdminInventario'
+import AdminCategorias  from './pages/admin/AdminCategorias'
+import AdminVentas      from './pages/admin/AdminVentas'
+import AdminPedidos     from './pages/admin/AdminPedidos'
+import AdminRoles       from './pages/admin/AdminRoles'
+import AdminRestricted  from './pages/admin/AdminRestricted'
+import AdminHistorial   from './pages/admin/AdminHistorial'
+
+// Guard: bloquea acceso via query ?admin desde dominio público
 function QueryAdminGuard({ children }) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -30,60 +39,59 @@ function QueryAdminGuard({ children }) {
 export default function App() {
   const isSubdomainAdmin = window.location.hostname.startsWith('admin.')
 
-  // Si la petición proviene del subdominio administrativo (admin.estilosgissel.com / admin.localhost)
+  // Subdominio admin.estilosgissel.com — solo panel
   if (isSubdomainAdmin) {
     return (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="admin" element={<AdminDashboard />} />
-            <Route path="*" element={<AdminDashboard />} />
+            <Route index          element={<AdminDashboard />} />
+            <Route path="inventario" element={<AdminInventario />} />
+            <Route path="categorias" element={<AdminCategorias />} />
+            <Route path="ventas"     element={<AdminVentas />} />
+            <Route path="pedidos"    element={<AdminPedidos />} />
+            <Route path="roles"      element={<AdminRoles />} />
+            <Route path="historial"  element={<AdminHistorial />} />
+            <Route path="*"          element={<AdminDashboard />} />
           </Route>
         </Routes>
       </BrowserRouter>
     )
   }
 
-  // Dominio Principal de Clientes
   return (
-    <BrowserRouter>
-      <QueryAdminGuard>
-        <Routes>
-          {/* ===================================================
-              RUTAS DE ADMINISTRACIÓN: 100% AISLADAS DEL CLIENTE
-              (No usan Navbar, ni Footer, ni elementos de tienda)
-             =================================================== */}
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-          </Route>
-          <Route path="/admin-restringido" element={<AdminRestricted />} />
+    <CartProvider>
+      <BrowserRouter>
+        <QueryAdminGuard>
+          <Routes>
 
-          {/* ===================================================
-              RUTAS DE LA TIENDA PÚBLICA PARA CLIENTES
-             =================================================== */}
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Home />} />
-            
-            {/* Buscador de catálogo */}
-            <Route path="buscar" element={<SearchResults />} />
+            {/* ── ADMIN — aislado, sin Navbar/Footer del cliente ── */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index              element={<AdminDashboard />} />
+              <Route path="inventario"  element={<AdminInventario />} />
+              <Route path="categorias"  element={<AdminCategorias />} />
+              <Route path="ventas"      element={<AdminVentas />} />
+              <Route path="pedidos"     element={<AdminPedidos />} />
+              <Route path="roles"       element={<AdminRoles />} />
+              <Route path="historial"   element={<AdminHistorial />} />
+            </Route>
+            <Route path="/admin-restringido" element={<AdminRestricted />} />
 
-            {/* Ficha individual de producto */}
-            <Route path="producto/:id" element={<ProductDetail />} />
+            {/* ── TIENDA PÚBLICA ── */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="buscar"                         element={<SearchResults />} />
+              <Route path="producto/:id"                   element={<ProductDetail />} />
+              <Route path="categoria/:category"            element={<Category />} />
+              <Route path="categoria/:category/:gender"    element={<Category />} />
+              <Route path=":categorySlug"                  element={<Category />} />
+              <Route path=":categorySlug/:gender"          element={<Category />} />
+              <Route path="*"                              element={<NotFound />} />
+            </Route>
 
-            {/* Rutas con prefijo /categoria/... */}
-            <Route path="categoria/:category" element={<Category />} />
-            <Route path="categoria/:category/:gender" element={<Category />} />
-
-            {/* Rutas directas para compartir catálogos (ej: /perfumes, /carteras/mujer) */}
-            <Route path=":categorySlug" element={<Category />} />
-            <Route path=":categorySlug/:gender" element={<Category />} />
-
-            {/* Página 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </QueryAdminGuard>
-    </BrowserRouter>
+          </Routes>
+        </QueryAdminGuard>
+      </BrowserRouter>
+    </CartProvider>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useId } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import './ImageUploader.css'
 
@@ -12,6 +12,7 @@ export default function ImageUploader({ value, onChange, label = 'Foto del Produ
   const [errorMsg, setErrorMsg] = useState('')
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef(null)
+  const fileInputId = useId()
 
   const processFile = async (file) => {
     if (!file) return
@@ -111,7 +112,7 @@ export default function ImageUploader({ value, onChange, label = 'Foto del Produ
 
   return (
     <div className="image-uploader">
-      <label className="overline image-uploader__label">{label} *</label>
+      <label htmlFor={fileInputId} className="overline image-uploader__label">{label} *</label>
 
       {/* Input oculto compatible con carrete móvil y explorador desktop */}
       <input
@@ -120,7 +121,8 @@ export default function ImageUploader({ value, onChange, label = 'Foto del Produ
         accept="image/*"
         onChange={handleFileChange}
         className="image-uploader__input"
-        id="device-image-input"
+        id={fileInputId}
+        name="image"
       />
 
       {value ? (

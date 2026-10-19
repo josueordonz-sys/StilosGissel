@@ -1,7 +1,11 @@
+/* ============================
+   FOOTER — Fondo Claro / Blanco
+   ============================== */
+
 .footer {
-  background-color: #121212;
-  color: #ffffff;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--color-white);
+  color: var(--color-text-main);
+  border-top: 1px solid var(--color-border);
   margin-top: var(--space-3xl);
   position: relative;
   z-index: 10;
@@ -15,6 +19,7 @@
   padding-bottom: var(--space-2xl);
 }
 
+/* Brand */
 .footer__brand {
   display: flex;
   flex-direction: column;
@@ -39,7 +44,7 @@
   font-size: 1.25rem;
   letter-spacing: 0.18em;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--color-text-main);
 }
 
 .footer__tagline {
@@ -47,12 +52,13 @@
   font-style: italic;
   font-size: 0.85rem;
   line-height: 1.6;
-  color: #d8d2c8;
+  color: var(--color-text-muted);
 }
 
+/* Columnas */
 .footer__heading {
   margin-bottom: var(--space-lg);
-  color: #c9a96e;
+  color: var(--color-gold);
   font-size: 0.72rem;
   letter-spacing: 0.22em;
   font-weight: 600;
@@ -68,34 +74,35 @@
   font-size: 0.82rem;
   font-weight: 400;
   letter-spacing: 0.04em;
-  color: #c4beb4;
+  color: var(--color-text-body);
   transition: color var(--transition-fast), transform var(--transition-fast);
   cursor: pointer;
   display: inline-block;
 }
 
 .footer__link:hover {
-  color: #ffffff;
+  color: var(--color-gold-dark);
   transform: translateX(2px);
 }
 
 .footer__link--text {
   cursor: default;
-  color: #a49e94;
+  color: var(--color-text-muted);
 }
 
 .footer__link--text:hover {
-  color: #a49e94;
+  color: var(--color-text-muted);
   transform: none;
 }
 
+/* Bottom */
 .footer__bottom {
   padding-bottom: var(--space-xl);
 }
 
 .footer__divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-border);
   margin-bottom: var(--space-lg);
 }
 
@@ -106,7 +113,7 @@
 }
 
 .footer__copyright {
-  color: #8c867c;
+  color: var(--color-text-muted);
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   text-align: center;
