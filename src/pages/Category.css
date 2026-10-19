@@ -76,14 +76,16 @@
   font-weight: 600;
 }
 
-/* --- CONTROLS BAR --- */
+/* --- CONTROLS BAR (GLASSMORPHISM) --- */
 .category-bar {
-  background: rgba(250, 248, 245, 0.94);
-  border-bottom: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.8);
   position: sticky;
   top: calc(28px + var(--navbar-height));
   z-index: 50;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
 .category-bar__inner {
@@ -96,10 +98,50 @@
   flex-wrap: wrap;
 }
 
+/* Glass Pill Buttons Container */
 .gender-filters {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 0.5rem;
+  background: rgba(244, 239, 232, 0.6);
+  padding: 0.3rem 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* Individual Glass Pill Buttons */
+.gender-filters .btn-ghost {
+  border-radius: 9999px;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: var(--color-text-main);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all var(--transition-base);
+}
+
+.gender-filters .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(156, 124, 68, 0.5);
+  color: var(--color-gold-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.gender-filters .btn-ghost.active {
+  background: var(--color-black);
+  border-color: var(--color-black);
+  color: var(--color-white);
+  box-shadow: 0 4px 14px rgba(18, 18, 18, 0.22);
+  font-weight: 600;
 }
 
 .category-bar__controls {
@@ -114,27 +156,35 @@
   letter-spacing: 0.1em;
 }
 
-/* --- SORT SELECT --- */
+/* --- SORT SELECT (GLASS PILL) --- */
 .sort-select-wrap {
   position: relative;
 }
 
 .sort-select {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
   color: var(--color-text-main);
-  padding: 0.5rem 1.2rem;
+  padding: 0.55rem 1.4rem;
   font-family: var(--font-body);
   font-size: 0.7rem;
+  font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   outline: none;
   cursor: pointer;
-  transition: border-color var(--transition-fast);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: all var(--transition-fast);
 }
 
+.sort-select:hover,
 .sort-select:focus {
   border-color: var(--color-gold);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .sort-select option {
