@@ -7,17 +7,21 @@
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: var(--space-xl);
-  border-bottom: 1px solid var(--color-black-light);
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: var(--space-lg);
   flex-wrap: wrap;
   gap: var(--space-md);
+}
+
+.admin-header h1 {
+  color: var(--color-text-main) !important;
 }
 
 .admin-tabs {
   display: flex;
   gap: var(--space-sm);
   margin-bottom: var(--space-2xl);
-  border-bottom: 1px solid var(--color-black-light);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .admin-tab {
@@ -27,19 +31,21 @@
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-gray-light);
+  color: var(--color-text-muted);
   border-bottom: 2px solid transparent;
   transition: all var(--transition-fast);
   cursor: pointer;
+  background: none;
 }
 
 .admin-tab:hover {
-  color: var(--color-white);
+  color: var(--color-text-main);
 }
 
 .admin-tab.active {
-  color: var(--color-gold);
-  border-bottom-color: var(--color-gold);
+  color: var(--color-gold-dark);
+  border-bottom-color: var(--color-gold-dark);
+  font-weight: 600;
 }
 
 .admin-content-grid {
@@ -49,8 +55,9 @@
 }
 
 .admin-card {
-  background: var(--color-black-soft);
-  border: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-xl);
 }
 
@@ -62,13 +69,16 @@
 }
 
 .admin-card-title {
-  color: var(--color-white);
+  color: var(--color-text-main) !important;
   margin-bottom: var(--space-xs);
+  font-weight: 500;
 }
 
 .admin-card-subtitle {
-  color: var(--color-gray);
+  color: var(--color-text-muted);
   margin-bottom: var(--space-lg);
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .admin-form {
@@ -83,6 +93,11 @@
   gap: var(--space-xs);
 }
 
+.form-group label.overline {
+  color: var(--color-gold-dark);
+  font-weight: 600;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -90,18 +105,24 @@
 }
 
 .admin-input {
-  background: var(--color-black-medium);
-  border: 1px solid var(--color-black-light);
-  color: var(--color-white-off);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
   padding: 0.75rem 1rem;
   font-family: var(--font-body);
   font-size: 0.85rem;
   outline: none;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.admin-input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.7;
 }
 
 .admin-input:focus {
   border-color: var(--color-gold);
+  box-shadow: 0 0 0 2px rgba(156, 124, 68, 0.15);
 }
 
 .admin-textarea {
@@ -111,13 +132,13 @@
 .slug-input-prefix {
   display: flex;
   align-items: center;
-  background: var(--color-black-medium);
-  border: 1px solid var(--color-black-light);
+  background: #ffffff;
+  border: 1px solid var(--color-border);
 }
 
 .slug-input-prefix span {
   padding: 0 0.75rem;
-  color: var(--color-gold);
+  color: var(--color-gold-dark);
   font-weight: bold;
 }
 
@@ -139,12 +160,12 @@
   align-items: center;
   gap: var(--space-sm);
   font-size: 0.78rem;
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   cursor: pointer;
 }
 
 .checkbox-label input {
-  accent-color: var(--color-gold);
+  accent-color: var(--color-gold-dark);
   width: 16px;
   height: 16px;
 }
@@ -158,15 +179,16 @@
 }
 
 .admin-status--success {
-  background: rgba(184, 151, 90, 0.15);
+  background: rgba(156, 124, 68, 0.1);
   border: 1px solid var(--color-gold);
-  color: var(--color-gold-light);
+  color: var(--color-gold-dark);
+  font-weight: 500;
 }
 
 .admin-status--error {
-  background: rgba(180, 50, 50, 0.2);
-  border: 1px solid #993333;
-  color: #ff9999;
+  background: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
 }
 
 /* Table */
@@ -183,18 +205,19 @@
 .admin-table th {
   text-align: left;
   padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--color-black-light);
+  border-bottom: 1px solid var(--color-border);
   font-family: var(--font-body);
   font-size: 0.65rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-gold);
+  color: var(--color-gold-dark);
+  font-weight: 600;
 }
 
 .admin-table td {
   padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--color-black-light);
-  color: var(--color-gray-light);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-main);
   vertical-align: middle;
 }
 
@@ -202,30 +225,32 @@
   width: 44px;
   height: 54px;
   object-fit: cover;
-  background: var(--color-black-medium);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
 }
 
 .btn-table-delete {
-  color: #cc6666;
+  color: #b91c1c;
   font-size: 0.68rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   background: none;
-  border: 1px solid rgba(204, 102, 102, 0.3);
+  border: 1px solid rgba(185, 28, 28, 0.3);
   padding: 0.3rem 0.6rem;
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .btn-table-delete:hover {
-  background: #cc6666;
-  color: var(--color-black);
+  background: #b91c1c;
+  color: #ffffff;
 }
 
 .empty-catalog-box {
   text-align: center;
   padding: var(--space-3xl) var(--space-lg);
-  border: 1px dashed var(--color-black-light);
+  border: 1px dashed var(--color-border);
+  background: var(--color-surface-soft);
 }
 
 /* Categorias admin */
@@ -240,12 +265,12 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--space-md);
-  border: 1px solid var(--color-black-light);
-  background: var(--color-black-medium);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
 }
 
 .category-admin-name {
-  color: var(--color-white);
+  color: var(--color-text-main);
   font-size: 1.1rem;
   margin: var(--space-xs) 0;
 }
@@ -261,8 +286,9 @@
 .admin-auth-card {
   max-width: 520px;
   width: 100%;
-  background: var(--color-black-soft);
-  border: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
   padding: var(--space-3xl) var(--space-2xl);
   text-align: center;
 }
@@ -272,7 +298,7 @@
 }
 
 .admin-auth-desc {
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   margin-top: var(--space-sm);
   margin-bottom: var(--space-2xl);
   line-height: 1.6;

@@ -231,18 +231,6 @@ export default function AdminDashboard() {
           <span className="overline">Panel Administrativo</span>
           <h1 className="display-lg">Control de Catalogo Real</h1>
         </div>
-        <div className="admin-header-actions">
-          <button
-            type="button"
-            className="btn btn-outline"
-            onClick={() => {
-              sessionStorage.removeItem('eg_admin_session')
-              setIsAuthorized(false)
-            }}
-          >
-            Cerrar Sesion
-          </button>
-        </div>
       </div>
 
       {/* Tabs */}

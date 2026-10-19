@@ -2,18 +2,21 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-black);
-  color: var(--color-white-off);
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
 }
 
 /* Barra superior exclusiva */
 .admin-topbar {
-  background: var(--color-black-soft);
-  border-bottom: 1px solid var(--color-black-light);
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid var(--color-border);
   height: 68px;
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-topbar__inner {
@@ -37,7 +40,7 @@
 
 .admin-topbar__titles {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-sm);
 }
 
@@ -45,8 +48,8 @@
   font-family: var(--font-display);
   font-size: 1.15rem;
   letter-spacing: 0.18em;
-  font-weight: 500;
-  color: var(--color-white);
+  font-weight: 600;
+  color: var(--color-text-main);
 }
 
 .admin-topbar__tag {
@@ -54,8 +57,8 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   padding: 0.15rem 0.5rem;
-  background: rgba(184, 151, 90, 0.15);
-  color: var(--color-gold);
+  background: rgba(156, 124, 68, 0.1);
+  color: var(--color-gold-dark);
   border: 1px solid var(--color-gold);
   border-radius: 2px;
 }
@@ -71,20 +74,20 @@
   align-items: center;
   gap: 0.4rem;
   padding-right: var(--space-sm);
-  border-right: 1px solid var(--color-black-light);
+  border-right: 1px solid var(--color-border);
 }
 
 .status-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #4ade80;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+  background-color: #16a34a;
+  box-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
 }
 
 .status-text {
   font-size: 0.68rem;
-  color: var(--color-gray-light);
+  color: var(--color-text-muted);
 }
 
 .admin-topbar__btn {
@@ -99,8 +102,8 @@
 
 /* Pie de página exclusivo */
 .admin-footer {
-  background: var(--color-black-soft);
-  border-top: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
   padding: var(--space-lg) 0;
   margin-top: var(--space-3xl);
 }
@@ -112,8 +115,8 @@
 }
 
 .admin-footer p {
-  color: var(--color-gray);
-  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
 }
 
 @media (max-width: 768px) {
