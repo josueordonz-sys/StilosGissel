@@ -1,6 +1,6 @@
 -- ============================================================
 -- ESTILOS GISSEL — Esquema de Base de Datos para Supabase
--- Base limpia para datos reales (sin productos falsos)
+-- Base limpia para datos reales y almacenamiento de imágenes
 -- Ejecuta este script en el SQL Editor de tu proyecto Supabase:
 -- https://supabase.com/dashboard/project/yibbhuauimlfabtnacwb/sql
 -- ============================================================
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.categorias (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. Tabla de Productos (sin restricciones fijas de categoría para permitir creación dinámica)
+-- 2. Tabla de Productos (imagen_url almacena la URL de Supabase Storage o imagen Base64 del dispositivo)
 CREATE TABLE IF NOT EXISTS public.productos (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   nombre TEXT NOT NULL,
@@ -48,7 +48,7 @@ CREATE POLICY "Lectura publica productos"
   TO anon, authenticated
   USING (true);
 
--- 5. Políticas de gestión (creación, edición y borrado para admin/usuarios autenticados o anon con clave)
+-- 5. Políticas de gestión total para catálogo
 DROP POLICY IF EXISTS "Gestion total categorias" ON public.categorias;
 CREATE POLICY "Gestion total categorias"
   ON public.categorias FOR ALL
@@ -63,7 +63,32 @@ CREATE POLICY "Gestion total productos"
   USING (true)
   WITH CHECK (true);
 
--- 6. Insertar las 4 Categorías iniciales dinámicas
+-- 6. Configuración de Almacenamiento (Supabase Storage Bucket para imágenes)
+-- Crea el bucket 'productos' como público si no existe
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('productos', 'productos', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Políticas para subir y ver imágenes en Supabase Storage
+DROP POLICY IF EXISTS "Permitir lectura publica imagenes" ON storage.objects;
+CREATE POLICY "Permitir lectura publica imagenes"
+  ON storage.objects FOR SELECT
+  TO anon, authenticated
+  USING (bucket_id = 'productos');
+
+DROP POLICY IF EXISTS "Permitir subida imagenes" ON storage.objects;
+CREATE POLICY "Permitir subida imagenes"
+  ON storage.objects FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (bucket_id = 'productos');
+
+DROP POLICY IF EXISTS "Permitir borrado imagenes" ON storage.objects;
+CREATE POLICY "Permitir borrado imagenes"
+  ON storage.objects FOR DELETE
+  TO anon, authenticated
+  USING (bucket_id = 'productos');
+
+-- 7. Insertar Categorías iniciales base
 INSERT INTO public.categorias (slug, nombre, descripcion, imagen_url, orden)
 VALUES
   ('perfumes', 'Perfumes', 'Extractos y fragancias exclusivas para dama y caballero.', 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=1600&q=80', 1),
@@ -76,4 +101,4 @@ ON CONFLICT (slug) DO UPDATE SET
   imagen_url = EXCLUDED.imagen_url,
   orden = EXCLUDED.orden;
 
--- NOTA: La tabla productos queda 100% vacía y limpia para que ingreses tus productos reales desde el panel administrativo.
+-- NOTA: La tabla productos queda 100% vacía para que subas tus fotos reales desde el carrete o archivos de tu dispositivo.

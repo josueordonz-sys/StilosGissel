@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useCategories } from '../../hooks/useCategories'
-import AdminRestricted from './AdminRestricted'
+import ImageUploader from '../../components/ui/ImageUploader'
 import './AdminDashboard.css'
 
 export default function AdminDashboard() {
@@ -81,8 +81,7 @@ export default function AdminDashboard() {
   // Desbloqueo manual / clave de acceso para desarrollo o subdominio
   const handleUnlock = (e) => {
     e.preventDefault()
-    // Clave de acceso corporativa o bypass en localhost
-    if (accessKeyInput === 'Gissel2026' || window.location.hostname === 'localhost') {
+    if (accessKeyInput === 'Gissel2026' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       setIsAuthorized(true)
       sessionStorage.setItem('eg_admin_session', 'true')
       setStatusMessage({ text: 'Acceso autorizado exitosamente.', type: 'success' })
@@ -95,7 +94,7 @@ export default function AdminDashboard() {
   const handleCreateProduct = async (e) => {
     e.preventDefault()
     if (!productForm.nombre || !productForm.precio || !productForm.imagen_url || !productForm.categoria) {
-      setStatusMessage({ text: 'Por favor complete todos los campos obligatorios del producto.', type: 'error' })
+      setStatusMessage({ text: 'Por favor complete todos los campos obligatorios y seleccione una foto desde el dispositivo.', type: 'error' })
       return
     }
 
@@ -106,7 +105,7 @@ export default function AdminDashboard() {
         genero: productForm.genero,
         precio: parseFloat(productForm.precio),
         descripcion: productForm.descripcion.trim(),
-        imagen_url: productForm.imagen_url.trim(),
+        imagen_url: productForm.imagen_url,
         destacado: Boolean(productForm.destacado),
         nuevo: Boolean(productForm.nuevo)
       }
@@ -115,7 +114,7 @@ export default function AdminDashboard() {
 
       if (error) throw error
 
-      setStatusMessage({ text: `Producto "${newProduct.nombre}" agregado exitosamente a Supabase.`, type: 'success' })
+      setStatusMessage({ text: `Producto "${newProduct.nombre}" agregado exitosamente a Supabase con foto real.`, type: 'success' })
       setProductForm({
         nombre: '',
         categoria: categories[0]?.slug || 'perfumes',
@@ -140,7 +139,7 @@ export default function AdminDashboard() {
       const { error } = await supabase.from('productos').delete().eq('id', id)
       if (error) throw error
 
-      setStatusMessage({ text: `Producto "${nombre}" eliminado.`, type: 'success' })
+      setStatusMessage({ text: `Producto "${nombre}" eliminado de la base de datos.`, type: 'success' })
       loadProducts()
     } catch (err) {
       setStatusMessage({ text: `Error al eliminar: ${err.message}`, type: 'error' })
@@ -160,7 +159,7 @@ export default function AdminDashboard() {
         nombre: categoryForm.nombre.trim(),
         slug: categoryForm.slug.trim().toLowerCase().replace(/\s+/g, '-'),
         descripcion: categoryForm.descripcion.trim(),
-        imagen_url: categoryForm.imagen_url.trim() || 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=1000&q=80',
+        imagen_url: categoryForm.imagen_url || 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=1000&q=80',
         orden: parseInt(categoryForm.orden, 10) || categories.length + 1
       }
 
@@ -168,7 +167,7 @@ export default function AdminDashboard() {
 
       if (error) throw error
 
-      setStatusMessage({ text: `Categoria "${newCategory.nombre}" creada exitosamente. Ya puedes usar /${newCategory.slug}`, type: 'success' })
+      setStatusMessage({ text: `Categoria "${newCategory.nombre}" creada. Ruta directa disponible: /${newCategory.slug}`, type: 'success' })
       setCategoryForm({ nombre: '', slug: '', descripcion: '', imagen_url: '', orden: 1 })
       refetchCategories()
     } catch (err) {
@@ -176,7 +175,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // Si no está autorizado y el host no es subdominio admin, mostrar pantalla restrictiva con opción de clave
   if (!isAuthorized) {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
@@ -278,7 +276,7 @@ export default function AdminDashboard() {
           <div className="admin-card">
             <h2 className="display-md admin-card-title">Agregar Producto</h2>
             <p className="body-sm admin-card-subtitle">
-              Los productos guardados se insertan directamente en tu base de datos de Supabase.
+              Sube las imágenes reales directamente desde el carrete de tu teléfono o archivos de tu computadora.
             </p>
 
             <form onSubmit={handleCreateProduct} className="admin-form">
@@ -287,10 +285,19 @@ export default function AdminDashboard() {
                 <input
                   type="text"
                   required
-                  placeholder="Ej: Extracto de Vainilla y Ambar"
+                  placeholder="Ej: Bolso Tote en Cuero Grano"
                   value={productForm.nombre}
                   onChange={e => setProductForm({ ...productForm, nombre: e.target.value })}
                   className="admin-input"
+                />
+              </div>
+
+              {/* Subida de Imagen desde Dispositivo / Carrete */}
+              <div className="form-group">
+                <ImageUploader
+                  value={productForm.imagen_url}
+                  onChange={(url) => setProductForm({ ...productForm, imagen_url: url })}
+                  label="Foto del Producto (Desde Dispositivo / Carrete)"
                 />
               </div>
 
@@ -324,32 +331,18 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="overline">Precio (Lempiras) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    placeholder="Ej: 2850.00"
-                    value={productForm.precio}
-                    onChange={e => setProductForm({ ...productForm, precio: e.target.value })}
-                    className="admin-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="overline">URL de la Imagen *</label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://ejemplo.com/imagen.jpg"
-                    value={productForm.imagen_url}
-                    onChange={e => setProductForm({ ...productForm, imagen_url: e.target.value })}
-                    className="admin-input"
-                  />
-                </div>
+              <div className="form-group">
+                <label className="overline">Precio (Lempiras) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  placeholder="Ej: 2850.00"
+                  value={productForm.precio}
+                  onChange={e => setProductForm({ ...productForm, precio: e.target.value })}
+                  className="admin-input"
+                />
               </div>
 
               <div className="form-group">
@@ -384,7 +377,7 @@ export default function AdminDashboard() {
               </div>
 
               <button type="submit" className="btn btn-primary">
-                Guardar en Supabase
+                Guardar en Catalogo Real
               </button>
             </form>
           </div>
@@ -412,7 +405,7 @@ export default function AdminDashboard() {
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Imagen</th>
+                      <th>Foto</th>
                       <th>Nombre</th>
                       <th>Categoria</th>
                       <th>Genero</th>
@@ -503,13 +496,10 @@ export default function AdminDashboard() {
               </div>
 
               <div className="form-group">
-                <label className="overline">URL Imagen de Portada</label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
+                <ImageUploader
                   value={categoryForm.imagen_url}
-                  onChange={e => setCategoryForm({ ...categoryForm, imagen_url: e.target.value })}
-                  className="admin-input"
+                  onChange={(url) => setCategoryForm({ ...categoryForm, imagen_url: url })}
+                  label="Foto de Portada de la Categoria"
                 />
               </div>
 
@@ -542,7 +532,7 @@ export default function AdminDashboard() {
                     <p className="body-sm">{cat.descripcion}</p>
                   </div>
                   <a
-                    href={`/categoria/${cat.slug}`}
+                    href={`/${cat.slug}`}
                     target="_blank"
                     rel="noreferrer"
                     className="btn btn-ghost"
