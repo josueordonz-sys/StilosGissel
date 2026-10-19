@@ -1,50 +1,28 @@
 import { useState, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
+import { useCategories } from '../hooks/useCategories'
 import ProductGrid from '../components/ui/ProductGrid'
 import './Category.css'
 
-const CATEGORY_META = {
-  perfumes: {
-    title: 'Perfumes',
-    subtitle: 'Extractos & Fragancias de Alta Gama',
-    description: 'Notas olfativas intensas, maderas preciosas y flores raras curadas para dejar una estela imborrable.',
-    bannerImg: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=1600&q=80'
-  },
-  carteras: {
-    title: 'Carteras',
-    subtitle: 'Marroquinería & Bolsos Exclusivos',
-    description: 'Pieles de origen noble y manufactura artesanal con herrajes duraderos en acabados sobrios.',
-    bannerImg: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1600&q=80'
-  },
-  sandalias: {
-    title: 'Sandalias',
-    subtitle: 'Calzado Ligero de Verano & Resort',
-    description: 'Diseños contemporáneos de tiras precisas, plantillas acolchadas y detalles metálicos discretos.',
-    bannerImg: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1600&q=80'
-  },
-  zapatos: {
-    title: 'Zapatos',
-    subtitle: 'Calzado de Vestir & Línea Urbana',
-    description: 'Zapatos de salón, mocasines y calzado formal confeccionados con altos estándares de confort y estética.',
-    bannerImg: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=1600&q=80'
-  }
-}
-
 export default function Category() {
-  const { category = 'perfumes', gender } = useParams()
+  const { category, categorySlug, gender } = useParams()
+  const activeSlug = (categorySlug || category || 'perfumes').toLowerCase()
   const navigate = useNavigate()
   const [sortBy, setSortBy] = useState('featured')
 
-  const meta = CATEGORY_META[category.toLowerCase()] || {
-    title: category.charAt(0).toUpperCase() + category.slice(1),
-    subtitle: 'Colección de Temporada',
-    description: 'Descubre nuestra selección exclusiva.',
-    bannerImg: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=80'
+  const { categories } = useCategories()
+  const currentCategory = categories.find(c => c.slug.toLowerCase() === activeSlug)
+
+  const meta = {
+    title: currentCategory?.nombre || activeSlug.charAt(0).toUpperCase() + activeSlug.slice(1),
+    subtitle: currentCategory?.descripcion || 'Coleccion de Temporada',
+    description: currentCategory?.descripcion || 'Explora nuestra linea exclusiva de piezas seleccionadas.',
+    bannerImg: currentCategory?.imagen_url || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=80'
   }
 
   const { products, loading } = useProducts({
-    category,
+    category: activeSlug,
     gender: gender || null
   })
 
@@ -65,9 +43,9 @@ export default function Category() {
 
   const handleGenderChange = (newGender) => {
     if (!newGender) {
-      navigate(`/categoria/${category}`)
+      navigate(`/${activeSlug}`)
     } else {
-      navigate(`/categoria/${category}/${newGender}`)
+      navigate(`/${activeSlug}/${newGender}`)
     }
   }
 
@@ -84,7 +62,7 @@ export default function Category() {
           <nav className="breadcrumbs" aria-label="Migas de pan">
             <Link to="/" className="breadcrumbs__link">Inicio</Link>
             <span className="breadcrumbs__sep">/</span>
-            <Link to={`/categoria/${category}`} className="breadcrumbs__link">
+            <Link to={`/${activeSlug}`} className="breadcrumbs__link">
               {meta.title}
             </Link>
             {gender && (
@@ -97,7 +75,7 @@ export default function Category() {
             )}
           </nav>
 
-          <span className="overline">{meta.subtitle}</span>
+          <span className="overline">Linea Exclusiva</span>
           <h1 className="display-lg category-banner__title">
             {meta.title} {gender ? `— ${gender.charAt(0).toUpperCase() + gender.slice(1)}` : ''}
           </h1>
@@ -161,7 +139,7 @@ export default function Category() {
         </div>
       </div>
 
-      {/* Grilla de Productos */}
+      {/* Grilla de Productos Reales */}
       <div className="category-content container section">
         <ProductGrid products={sortedProducts} loading={loading} columns={4} />
       </div>

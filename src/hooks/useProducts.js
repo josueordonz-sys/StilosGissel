@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { MOCK_PRODUCTS } from '../data/mockProducts'
 
 /**
- * Hook modular para obtener productos con filtros de categoría, género, búsqueda y destacados.
- * Consulta primero Supabase; si la tabla no existe o está vacía, usa los datos locales de respaldo.
+ * Hook modular para obtener productos reales desde Supabase.
+ * Soporta filtros dinámicos por categoría, género, destacados y búsqueda por texto.
  */
 export function useProducts(filters = {}) {
   const { category, gender, search, featured, limit } = filters
@@ -17,19 +16,20 @@ export function useProducts(filters = {}) {
     setError(null)
 
     try {
-      let query = supabase.from('productos').select('*')
+      let query = supabase.from('productos').select('*').order('created_at', { ascending: false })
 
-      if (category) {
+      if (category && category !== 'todos') {
         query = query.ilike('categoria', category)
       }
-      if (gender) {
+      if (gender && gender !== 'todos') {
         query = query.ilike('genero', gender)
       }
       if (featured) {
         query = query.eq('destacado', true)
       }
-      if (search) {
-        query = query.or(`nombre.ilike.%${search}%,descripcion.ilike.%${search}%`)
+      if (search && search.trim()) {
+        const s = search.trim()
+        query = query.or(`nombre.ilike.%${s}%,descripcion.ilike.%${s}%`)
       }
       if (limit) {
         query = query.limit(limit)
@@ -37,49 +37,17 @@ export function useProducts(filters = {}) {
 
       const { data, error: supabaseError } = await query
 
-      if (supabaseError || !data || data.length === 0) {
-        // Fallback a MOCK_PRODUCTS con los mismos filtros
-        let filtered = [...MOCK_PRODUCTS]
-
-        if (category) {
-          const catNorm = category.toLowerCase()
-          filtered = filtered.filter(p => p.categoria.toLowerCase() === catNorm)
-        }
-        if (gender) {
-          const genNorm = gender.toLowerCase()
-          filtered = filtered.filter(p => p.genero.toLowerCase() === genNorm)
-        }
-        if (featured) {
-          filtered = filtered.filter(p => p.destacado)
-        }
-        if (search) {
-          const s = search.toLowerCase()
-          filtered = filtered.filter(
-            p => p.nombre.toLowerCase().includes(s) || p.descripcion.toLowerCase().includes(s)
-          )
-        }
-        if (limit) {
-          filtered = filtered.slice(0, limit)
-        }
-
-        setProducts(filtered)
+      if (supabaseError) {
+        console.warn('Error al consultar Supabase:', supabaseError.message)
+        setError(supabaseError.message)
+        setProducts([])
       } else {
-        setProducts(data)
+        setProducts(data || [])
       }
     } catch (err) {
-      // En caso de cualquier error de conexión o configuración, aplicar mock
-      let filtered = [...MOCK_PRODUCTS]
-      if (category) filtered = filtered.filter(p => p.categoria.toLowerCase() === category.toLowerCase())
-      if (gender) filtered = filtered.filter(p => p.genero.toLowerCase() === gender.toLowerCase())
-      if (featured) filtered = filtered.filter(p => p.destacado)
-      if (search) {
-        const s = search.toLowerCase()
-        filtered = filtered.filter(
-          p => p.nombre.toLowerCase().includes(s) || p.descripcion.toLowerCase().includes(s)
-        )
-      }
-      if (limit) filtered = filtered.slice(0, limit)
-      setProducts(filtered)
+      console.warn('Error de conexion Supabase:', err)
+      setError(err.message)
+      setProducts([])
     } finally {
       setLoading(false)
     }
@@ -93,7 +61,7 @@ export function useProducts(filters = {}) {
 }
 
 /**
- * Hook para obtener un único producto por ID
+ * Hook para obtener un único producto por ID desde Supabase
  */
 export function useProduct(id) {
   const [product, setProduct] = useState(null)
@@ -112,15 +80,15 @@ export function useProduct(id) {
           .eq('id', id)
           .single()
 
-        if (supabaseError || !data) {
-          const found = MOCK_PRODUCTS.find(p => String(p.id) === String(id))
-          setProduct(found || null)
+        if (supabaseError) {
+          setError(supabaseError.message)
+          setProduct(null)
         } else {
           setProduct(data)
         }
       } catch (err) {
-        const found = MOCK_PRODUCTS.find(p => String(p.id) === String(id))
-        setProduct(found || null)
+        setError(err.message)
+        setProduct(null)
       } finally {
         setLoading(false)
       }

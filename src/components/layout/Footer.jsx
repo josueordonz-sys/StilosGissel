@@ -1,14 +1,10 @@
 import { Link } from 'react-router-dom'
+import { useCategories } from '../../hooks/useCategories'
 import './Footer.css'
 
-const CATEGORIES = [
-  { slug: 'perfumes',  label: 'Perfumes'  },
-  { slug: 'carteras',  label: 'Carteras'  },
-  { slug: 'sandalias', label: 'Sandalias' },
-  { slug: 'zapatos',   label: 'Zapatos'   },
-]
-
 export default function Footer() {
+  const { categories } = useCategories()
+
   return (
     <footer className="footer">
       <div className="footer__inner container">
@@ -27,14 +23,14 @@ export default function Footer() {
           </p>
         </div>
 
-        {/* Categorias */}
+        {/* Categorias Dinamicas */}
         <div className="footer__col">
           <h3 className="footer__heading overline">Categorias</h3>
           <ul className="footer__list">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <li key={cat.slug}>
-                <Link to={`/categoria/${cat.slug}`} className="footer__link">
-                  {cat.label}
+                <Link to={`/${cat.slug}`} className="footer__link">
+                  {cat.nombre}
                 </Link>
               </li>
             ))}
@@ -45,10 +41,10 @@ export default function Footer() {
         <div className="footer__col">
           <h3 className="footer__heading overline">Por genero</h3>
           <ul className="footer__list">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <li key={cat.slug}>
-                <Link to={`/categoria/${cat.slug}/mujer`} className="footer__link">
-                  {cat.label} Mujer
+                <Link to={`/${cat.slug}/mujer`} className="footer__link">
+                  {cat.nombre} Mujer
                 </Link>
               </li>
             ))}

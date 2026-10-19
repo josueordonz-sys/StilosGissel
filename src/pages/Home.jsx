@@ -1,36 +1,11 @@
 import { Link } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
+import { useCategories } from '../hooks/useCategories'
 import ProductGrid from '../components/ui/ProductGrid'
 import './Home.css'
 
-const CATEGORY_CARDS = [
-  {
-    slug: 'perfumes',
-    title: 'Perfumes',
-    subtitle: 'Extractos & Fragancias Exclusivas',
-    image: 'https://images.unsplash.com/photo-1547887537-6158d64c35b3?auto=format&fit=crop&w=1000&q=80'
-  },
-  {
-    slug: 'carteras',
-    title: 'Carteras',
-    subtitle: 'Pieles Italianas & Herrajes Nobles',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1000&q=80'
-  },
-  {
-    slug: 'sandalias',
-    title: 'Sandalias',
-    subtitle: 'Siluetas Ligeras & Sofisticadas',
-    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=1000&q=80'
-  },
-  {
-    slug: 'zapatos',
-    title: 'Zapatos',
-    subtitle: 'Calzado Formal & Contemporáneo',
-    image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?auto=format&fit=crop&w=1000&q=80'
-  }
-]
-
 export default function Home() {
+  const { categories } = useCategories()
   const { products: featuredProducts, loading: loadingFeatured } = useProducts({ featured: true, limit: 4 })
   const { products: newArrivals, loading: loadingNew } = useProducts({ limit: 4 })
 
@@ -52,10 +27,10 @@ export default function Home() {
             Piezas atemporales pensadas para perdurar. Perfumería nicho, marroquinería y calzado con acabados de alta distinción.
           </p>
           <div className="hero__actions">
-            <Link to="/categoria/perfumes" className="btn btn-primary">
+            <Link to="/perfumes" className="btn btn-primary">
               Explorar Catalogo
             </Link>
-            <Link to="/categoria/carteras/mujer" className="btn btn-outline">
+            <Link to="/carteras/mujer" className="btn btn-outline">
               Coleccion Mujer
             </Link>
           </div>
@@ -77,7 +52,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categorías Principales */}
+      {/* Categorías Dinámicas */}
       <section className="section container">
         <div className="section-header">
           <div>
@@ -87,25 +62,25 @@ export default function Home() {
         </div>
 
         <div className="categories-grid">
-          {CATEGORY_CARDS.map(cat => (
+          {categories.map(cat => (
             <div key={cat.slug} className="category-card">
               <div className="category-card__image-wrap">
-                <img src={cat.image} alt={cat.title} className="category-card__image" loading="lazy" />
+                <img src={cat.imagen_url} alt={cat.nombre} className="category-card__image" loading="lazy" />
                 <div className="category-card__overlay" />
               </div>
               <div className="category-card__content">
-                <span className="overline">{cat.subtitle}</span>
-                <h3 className="category-card__title display-md">{cat.title}</h3>
+                <span className="overline">{cat.descripcion || 'Coleccion Exclusiva'}</span>
+                <h3 className="category-card__title display-md">{cat.nombre}</h3>
                 <div className="category-card__links">
-                  <Link to={`/categoria/${cat.slug}/mujer`} className="category-card__link">
+                  <Link to={`/${cat.slug}/mujer`} className="category-card__link">
                     Mujer
                   </Link>
                   <span className="category-card__divider">/</span>
-                  <Link to={`/categoria/${cat.slug}/hombre`} className="category-card__link">
+                  <Link to={`/${cat.slug}/hombre`} className="category-card__link">
                     Hombre
                   </Link>
                   <span className="category-card__divider">/</span>
-                  <Link to={`/categoria/${cat.slug}`} className="category-card__link category-card__link--all">
+                  <Link to={`/${cat.slug}`} className="category-card__link category-card__link--all">
                     Ver Todo
                   </Link>
                 </div>
@@ -123,7 +98,7 @@ export default function Home() {
               <span className="overline">The Edit</span>
               <h2 className="display-lg">Curated. Stylish. You.</h2>
             </div>
-            <Link to="/categoria/perfumes" className="btn btn-ghost">
+            <Link to="/perfumes" className="btn btn-ghost">
               Ver Todo el Catalogo
             </Link>
           </div>
@@ -146,7 +121,7 @@ export default function Home() {
               <span className="overline">Exclusivo</span>
               <h3 className="display-md">Coleccion Mujer</h3>
               <p className="body-sm">Siluetas etéreas, marroquinería y esencias envolventes.</p>
-              <Link to="/categoria/carteras/mujer" className="btn btn-outline">
+              <Link to="/carteras/mujer" className="btn btn-outline">
                 Ver Coleccion
               </Link>
             </div>
@@ -163,7 +138,7 @@ export default function Home() {
               <span className="overline">Distinción</span>
               <h3 className="display-md">Coleccion Hombre</h3>
               <p className="body-sm">Cortes sobrios, cueros de grano y fragancias amaderadas.</p>
-              <Link to="/categoria/zapatos/hombre" className="btn btn-outline">
+              <Link to="/zapatos/hombre" className="btn btn-outline">
                 Ver Coleccion
               </Link>
             </div>
@@ -178,7 +153,7 @@ export default function Home() {
             <span className="overline">Recien Llegados</span>
             <h2 className="display-lg">Novedades de la Temporada</h2>
           </div>
-          <Link to="/categoria/sandalias" className="btn btn-ghost">
+          <Link to="/sandalias" className="btn btn-ghost">
             Explorar Mas
           </Link>
         </div>

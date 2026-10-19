@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useCategories } from '../../hooks/useCategories'
 import './Navbar.css'
 
-const CATEGORIES = [
-  { slug: 'perfumes',  label: 'Perfumes'  },
-  { slug: 'carteras',  label: 'Carteras'  },
-  { slug: 'sandalias', label: 'Sandalias' },
-  { slug: 'zapatos',   label: 'Zapatos'   },
-]
-
 export default function Navbar() {
+  const { categories } = useCategories()
   const [scrolled, setScrolled]       = useState(false)
   const [menuOpen, setMenuOpen]       = useState(false)
   const [searchOpen, setSearchOpen]   = useState(false)
@@ -46,28 +41,28 @@ export default function Navbar() {
             <img src="/logo_sin_fondo.webp" alt="Estilos Gissel" />
           </Link>
 
-          {/* Navegacion central */}
+          {/* Navegacion central dinamica */}
           <nav className="navbar__nav" aria-label="Categorias principales">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <div key={cat.slug} className="navbar__nav-item">
                 <NavLink
-                  to={`/categoria/${cat.slug}`}
+                  to={`/${cat.slug}`}
                   className={({ isActive }) =>
                     `navbar__link ${isActive ? 'navbar__link--active' : ''}`
                   }
                 >
-                  {cat.label}
+                  {cat.nombre}
                 </NavLink>
                 {/* Mega menu genero */}
                 <div className="navbar__dropdown">
                   <NavLink
-                    to={`/categoria/${cat.slug}/mujer`}
+                    to={`/${cat.slug}/mujer`}
                     className="navbar__dropdown-link"
                   >
                     Mujer
                   </NavLink>
                   <NavLink
-                    to={`/categoria/${cat.slug}/hombre`}
+                    to={`/${cat.slug}/hombre`}
                     className="navbar__dropdown-link"
                   >
                     Hombre
@@ -125,28 +120,28 @@ export default function Navbar() {
         )}
       </header>
 
-      {/* Mobile menu */}
+      {/* Mobile menu dinamico */}
       <div className={`navbar__mobile-menu ${menuOpen ? 'navbar__mobile-menu--open' : ''}`}>
         <nav aria-label="Menu movil">
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <div key={cat.slug} className="navbar__mobile-category">
               <Link
-                to={`/categoria/${cat.slug}`}
+                to={`/${cat.slug}`}
                 className="navbar__mobile-link"
                 onClick={() => setMenuOpen(false)}
               >
-                {cat.label}
+                {cat.nombre}
               </Link>
               <div className="navbar__mobile-sub">
                 <Link
-                  to={`/categoria/${cat.slug}/mujer`}
+                  to={`/${cat.slug}/mujer`}
                   className="navbar__mobile-sublink"
                   onClick={() => setMenuOpen(false)}
                 >
                   Mujer
                 </Link>
                 <Link
-                  to={`/categoria/${cat.slug}/hombre`}
+                  to={`/${cat.slug}/hombre`}
                   className="navbar__mobile-sublink"
                   onClick={() => setMenuOpen(false)}
                 >
