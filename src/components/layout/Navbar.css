@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   z-index: 200;
-  background: var(--color-gold-dark);
+  background: var(--color-black);
   text-align: center;
   padding: 0.4rem;
   height: 28px;
@@ -15,8 +15,9 @@
 }
 
 .navbar__announcement .overline {
-  color: var(--color-black);
+  color: var(--color-gold-light);
   font-size: 0.6rem;
+  letter-spacing: 0.22em;
 }
 
 /* --- Navbar base --- */
@@ -28,15 +29,16 @@
   z-index: 100;
   height: var(--navbar-height);
   border-bottom: 1px solid transparent;
-  transition: background var(--transition-base), border-color var(--transition-base);
-  background: rgba(13, 13, 13, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  transition: background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+  background: rgba(250, 248, 245, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .navbar--scrolled {
-  background: rgba(13, 13, 13, 0.97);
-  border-bottom-color: var(--color-black-light);
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .navbar__inner {
@@ -46,7 +48,7 @@
   height: 100%;
 }
 
-/* --- Logo --- */
+/* --- Logo & Marca --- */
 .navbar__logo {
   display: flex;
   align-items: center;
@@ -63,10 +65,10 @@
 
 .navbar__brand-name {
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  letter-spacing: 0.22em;
-  font-weight: 500;
-  color: var(--color-white);
+  font-size: 1.18rem;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  color: var(--color-text-main);
   white-space: nowrap;
   transition: color var(--transition-fast);
 }
@@ -92,11 +94,11 @@
 
 .navbar__link {
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   padding: var(--space-sm) 0;
   transition: color var(--transition-fast);
   display: block;
@@ -114,7 +116,8 @@
 
 .navbar__link:hover,
 .navbar__link--active {
-  color: var(--color-white-off);
+  color: var(--color-text-main);
+  font-weight: 600;
 }
 
 .navbar__link:hover::after,
@@ -127,15 +130,15 @@
   position: absolute;
   top: calc(100% + var(--space-sm));
   left: 50%;
-  transform: translateX(-50%);
-  background: var(--color-black-soft);
-  border: 1px solid var(--color-black-light);
+  transform: translateX(-50%) translateY(-8px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
   padding: var(--space-sm) 0;
-  min-width: 130px;
+  min-width: 140px;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
-  transform: translateX(-50%) translateY(-8px);
 }
 
 .navbar__nav-item:hover .navbar__dropdown {
@@ -146,18 +149,20 @@
 
 .navbar__dropdown-link {
   display: block;
-  padding: 0.5rem 1.2rem;
-  font-size: 0.65rem;
+  padding: 0.55rem 1.4rem;
+  font-size: 0.68rem;
   font-weight: 400;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   transition: color var(--transition-fast), background var(--transition-fast);
 }
 
-.navbar__dropdown-link:hover {
+.navbar__dropdown-link:hover,
+.navbar__dropdown-link.active {
   color: var(--color-gold);
   background: var(--color-gold-subtle);
+  font-weight: 600;
 }
 
 /* --- Acciones --- */
@@ -171,9 +176,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  color: var(--color-gray-light);
+  width: 38px;
+  height: 38px;
+  color: var(--color-text-main);
   transition: color var(--transition-fast);
   background: none;
   border: none;
@@ -190,8 +195,9 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--color-black-soft);
-  border-bottom: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-md) 0;
   animation: fadeIn 0.2s ease;
 }
@@ -208,26 +214,22 @@
   flex: 1;
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-black-light);
-  color: var(--color-white-off);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-main);
   font-family: var(--font-body);
-  font-size: 0.85rem;
-  letter-spacing: 0.06em;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
   padding: 0.5rem 0;
   outline: none;
   transition: border-color var(--transition-fast);
 }
 
 .navbar__search-input::placeholder {
-  color: var(--color-gray);
+  color: var(--color-text-muted);
 }
 
 .navbar__search-input:focus {
   border-bottom-color: var(--color-gold);
-}
-
-.navbar__search-input::-webkit-search-cancel-button {
-  -webkit-appearance: none;
 }
 
 /* --- Burger --- */
@@ -247,7 +249,7 @@
   display: block;
   height: 1px;
   width: 100%;
-  background: var(--color-gray-light);
+  background: var(--color-text-main);
   transition: transform var(--transition-base), opacity var(--transition-base);
 }
 
@@ -269,7 +271,7 @@
   right: 0;
   bottom: 0;
   z-index: 90;
-  background: var(--color-black-soft);
+  background: var(--color-surface);
   padding: var(--space-xl) var(--space-xl);
   transform: translateX(-100%);
   transition: transform var(--transition-base);
@@ -281,17 +283,17 @@
 }
 
 .navbar__mobile-category {
-  border-bottom: 1px solid var(--color-black-light);
+  border-bottom: 1px solid var(--color-border-light);
   padding: var(--space-md) 0;
 }
 
 .navbar__mobile-link {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--color-white-off);
+  color: var(--color-text-main);
   padding: var(--space-sm) 0;
 }
 
@@ -302,10 +304,10 @@
 }
 
 .navbar__mobile-sublink {
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-gray);
+  color: var(--color-text-muted);
   transition: color var(--transition-fast);
 }
 
@@ -318,7 +320,7 @@
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(18, 18, 18, 0.4);
 }
 
 /* --- Responsive --- */
@@ -334,5 +336,8 @@
 @media (max-width: 480px) {
   .navbar__logo img {
     height: 36px;
+  }
+  .navbar__brand-name {
+    font-size: 1rem;
   }
 }

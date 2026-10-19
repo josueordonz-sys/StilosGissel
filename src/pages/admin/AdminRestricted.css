@@ -8,8 +8,9 @@
 .admin-restricted__card {
   max-width: 600px;
   width: 100%;
-  background: var(--color-black-soft);
-  border: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
   padding: var(--space-3xl) var(--space-2xl);
   text-align: center;
   display: flex;
@@ -24,27 +25,28 @@
 .admin-restricted__title {
   margin-top: var(--space-xs);
   margin-bottom: var(--space-md);
-  color: var(--color-white);
+  color: var(--color-text-main);
 }
 
 .admin-restricted__desc {
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   margin-bottom: var(--space-md);
   line-height: 1.7;
 }
 
 .admin-restricted__note {
-  color: var(--color-gray);
-  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
   margin-bottom: var(--space-2xl);
   line-height: 1.6;
 }
 
 .admin-restricted__note code {
-  color: var(--color-gold);
-  background: var(--color-black-medium);
+  color: var(--color-gold-dark);
+  background: var(--color-surface-soft);
   padding: 0.2rem 0.4rem;
   border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
 }
 
 .admin-restricted__actions {

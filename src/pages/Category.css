@@ -5,7 +5,8 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  border-bottom: 1px solid var(--color-black-light);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
 }
 
 .category-banner__bg {
@@ -13,7 +14,7 @@
   inset: 0;
   background-size: cover;
   background-position: center 30%;
-  opacity: 0.25;
+  opacity: 0.22;
 }
 
 .category-banner__overlay {
@@ -21,9 +22,9 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(13, 13, 13, 0.95) 0%,
-    rgba(13, 13, 13, 0.8) 60%,
-    rgba(13, 13, 13, 0.5) 100%
+    rgba(250, 248, 245, 0.96) 0%,
+    rgba(250, 248, 245, 0.85) 60%,
+    rgba(250, 248, 245, 0.5) 100%
   );
 }
 
@@ -38,11 +39,11 @@
 .category-banner__title {
   margin-top: var(--space-xs);
   margin-bottom: var(--space-xs);
-  color: var(--color-white);
+  color: var(--color-text-main);
 }
 
 .category-banner__desc {
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   line-height: 1.6;
 }
 
@@ -58,7 +59,7 @@
 }
 
 .breadcrumbs__link {
-  color: var(--color-gray);
+  color: var(--color-text-muted);
   transition: color var(--transition-fast);
 }
 
@@ -67,21 +68,22 @@
 }
 
 .breadcrumbs__sep {
-  color: var(--color-gray-dark);
+  color: var(--color-border);
 }
 
 .breadcrumbs__current {
-  color: var(--color-gold);
+  color: var(--color-text-main);
+  font-weight: 600;
 }
 
 /* --- CONTROLS BAR --- */
 .category-bar {
-  background: var(--color-black-soft);
-  border-bottom: 1px solid var(--color-black-light);
+  background: rgba(250, 248, 245, 0.94);
+  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: calc(28px + var(--navbar-height));
   z-index: 50;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
 }
 
 .category-bar__inner {
@@ -107,7 +109,7 @@
 }
 
 .category-bar__count {
-  color: var(--color-gray);
+  color: var(--color-text-muted);
   font-size: 0.72rem;
   letter-spacing: 0.1em;
 }
@@ -118,9 +120,9 @@
 }
 
 .sort-select {
-  background: var(--color-black-medium);
-  border: 1px solid var(--color-black-light);
-  color: var(--color-white-off);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-main);
   padding: 0.5rem 1.2rem;
   font-family: var(--font-body);
   font-size: 0.7rem;
@@ -136,8 +138,8 @@
 }
 
 .sort-select option {
-  background: var(--color-black-soft);
-  color: var(--color-white-off);
+  background: var(--color-surface);
+  color: var(--color-text-main);
 }
 
 .visually-hidden {

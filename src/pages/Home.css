@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  background-color: var(--color-black);
+  background-color: var(--color-surface-soft);
 }
 
 .hero__background {
@@ -14,7 +14,7 @@
   background-image: url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1800&q=80');
   background-size: cover;
   background-position: center 30%;
-  opacity: 0.38;
+  opacity: 0.28;
 }
 
 .hero__overlay {
@@ -22,9 +22,9 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(13, 13, 13, 0.95) 0%,
-    rgba(13, 13, 13, 0.75) 50%,
-    rgba(13, 13, 13, 0.4) 100%
+    rgba(250, 248, 245, 0.96) 0%,
+    rgba(250, 248, 245, 0.85) 50%,
+    rgba(250, 248, 245, 0.4) 100%
   );
 }
 
@@ -42,13 +42,13 @@
 
 .hero__title {
   margin-bottom: var(--space-md);
-  color: var(--color-white);
+  color: var(--color-text-main);
 }
 
 .hero__description {
   font-size: 0.95rem;
   font-weight: 300;
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   line-height: 1.8;
   margin-bottom: var(--space-xl);
   max-width: 540px;
@@ -66,11 +66,12 @@
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-lg);
   padding-top: var(--space-xl);
-  border-top: 1px solid var(--color-black-light);
+  border-top: 1px solid var(--color-border);
 }
 
 .hero__feature-item p {
   margin-top: var(--space-xs);
+  color: var(--color-text-muted);
 }
 
 /* --- SECTION HEADERS --- */
@@ -86,9 +87,9 @@
 }
 
 .section--dark {
-  background-color: var(--color-black-soft);
-  border-top: 1px solid var(--color-black-light);
-  border-bottom: 1px solid var(--color-black-light);
+  background-color: var(--color-surface-soft);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* --- CATEGORIES GRID --- */
@@ -102,20 +103,24 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--color-black-soft);
-  border: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: border-color var(--transition-base);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 }
 
 .category-card:hover {
   border-color: var(--color-gold);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .category-card__image-wrap {
   position: relative;
   aspect-ratio: 4 / 5;
   overflow: hidden;
+  background: var(--color-surface-soft);
 }
 
 .category-card__image {
@@ -134,8 +139,8 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(13, 13, 13, 0) 40%,
-    rgba(13, 13, 13, 0.85) 100%
+    rgba(0, 0, 0, 0) 60%,
+    rgba(0, 0, 0, 0.45) 100%
   );
 }
 
@@ -144,10 +149,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+  background: var(--color-surface);
 }
 
 .category-card__title {
-  color: var(--color-white-off);
+  color: var(--color-text-main);
 }
 
 .category-card__links {
@@ -162,20 +168,22 @@
   font-size: 0.68rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--color-gray-light);
+  color: var(--color-text-muted);
   transition: color var(--transition-fast);
 }
 
 .category-card__link:hover {
   color: var(--color-gold);
+  font-weight: 600;
 }
 
 .category-card__link--all {
-  color: var(--color-gold);
+  color: var(--color-text-main);
+  font-weight: 600;
 }
 
 .category-card__divider {
-  color: var(--color-gray-dark);
+  color: var(--color-border);
   font-size: 0.7rem;
 }
 
@@ -192,7 +200,8 @@
   overflow: hidden;
   display: flex;
   align-items: flex-end;
-  border: 1px solid var(--color-black-light);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .duo-banner__image {
@@ -212,7 +221,7 @@
   position: relative;
   z-index: 2;
   padding: var(--space-2xl);
-  background: linear-gradient(0deg, rgba(13, 13, 13, 0.95) 0%, rgba(13, 13, 13, 0) 100%);
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.6) 60%, rgba(255, 255, 255, 0) 100%);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -221,11 +230,12 @@
 }
 
 .duo-banner__content h3 {
-  color: var(--color-white);
+  color: var(--color-text-main);
 }
 
 .duo-banner__content p {
   margin-bottom: var(--space-sm);
+  color: var(--color-text-body);
 }
 
 /* --- RESPONSIVE --- */

@@ -28,8 +28,9 @@
 
 .product-detail__main-image-wrap {
   aspect-ratio: 4 / 5;
-  background: var(--color-black-medium);
-  border: 1px solid var(--color-black-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -58,16 +59,16 @@
 }
 
 .product-detail__title {
-  color: var(--color-white);
+  color: var(--color-text-main);
   margin-bottom: var(--space-sm);
   line-height: 1.15;
 }
 
 .product-detail__price {
-  font-size: 1.4rem;
-  font-weight: 400;
-  color: var(--color-gold);
-  letter-spacing: 0.05em;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--color-gold-dark);
+  letter-spacing: 0.04em;
   font-family: var(--font-display);
 }
 
@@ -76,9 +77,9 @@
 }
 
 .product-detail__desc p {
-  color: var(--color-gray-light);
+  color: var(--color-text-body);
   line-height: 1.8;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 300;
   margin-top: var(--space-xs);
 }
@@ -101,12 +102,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  border-top: 1px solid var(--color-black-light);
+  border-top: 1px solid var(--color-border);
   padding-top: var(--space-xl);
 }
 
 .perk-item {
-  border-left: 2px solid var(--color-gold-dark);
+  border-left: 2px solid var(--color-gold);
   padding-left: var(--space-md);
 }
 
@@ -116,8 +117,8 @@
 }
 
 .perk-item p {
-  color: var(--color-gray);
-  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
 }
 
 /* Responsive */
