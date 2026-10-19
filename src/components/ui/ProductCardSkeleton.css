@@ -1,0 +1,31 @@
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.skeleton-card__image {
+  aspect-ratio: 3 / 4;
+  width: 100%;
+}
+
+.skeleton-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.skeleton-card__tag {
+  width: 50px;
+  height: 16px;
+}
+
+.skeleton-card__name {
+  width: 85%;
+  height: 20px;
+}
+
+.skeleton-card__price {
+  width: 45%;
+  height: 16px;
+}

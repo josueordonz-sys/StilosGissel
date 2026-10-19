@@ -1,0 +1,129 @@
+.product-detail-page {
+  animation: fadeIn 0.4s ease;
+}
+
+.product-detail__loading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2xl);
+}
+
+.product-detail__notfound {
+  text-align: center;
+  padding: var(--space-3xl) 0;
+}
+
+.product-detail__layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: start;
+  margin-top: var(--space-lg);
+}
+
+/* Galería */
+.product-detail__gallery {
+  position: relative;
+}
+
+.product-detail__main-image-wrap {
+  aspect-ratio: 4 / 5;
+  background: var(--color-black-medium);
+  border: 1px solid var(--color-black-light);
+  overflow: hidden;
+}
+
+.product-detail__main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.product-detail__main-image-wrap:hover .product-detail__main-image {
+  transform: scale(1.04);
+}
+
+/* Información */
+.product-detail__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-detail__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xs);
+}
+
+.product-detail__title {
+  color: var(--color-white);
+  margin-bottom: var(--space-sm);
+  line-height: 1.15;
+}
+
+.product-detail__price {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: var(--color-gold);
+  letter-spacing: 0.05em;
+  font-family: var(--font-display);
+}
+
+.product-detail__desc {
+  margin: var(--space-md) 0 var(--space-xl) 0;
+}
+
+.product-detail__desc p {
+  color: var(--color-gray-light);
+  line-height: 1.8;
+  font-size: 0.9rem;
+  font-weight: 300;
+  margin-top: var(--space-xs);
+}
+
+.product-detail__actions {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2xl);
+}
+
+.product-detail__btn-order {
+  flex: 1;
+  min-width: 220px;
+  justify-content: center;
+}
+
+/* Perks / Garantías */
+.product-detail__perks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  border-top: 1px solid var(--color-black-light);
+  padding-top: var(--space-xl);
+}
+
+.perk-item {
+  border-left: 2px solid var(--color-gold-dark);
+  padding-left: var(--space-md);
+}
+
+.perk-item__title {
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
+.perk-item p {
+  color: var(--color-gray);
+  font-size: 0.78rem;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .product-detail__layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+}
