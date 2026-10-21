@@ -57,6 +57,7 @@ export default function AdminVentas() {
   const streamRef = useRef(null)
   const barcodeDetectorRef = useRef(null)
   const scanIntervalRef = useRef(null)
+  const scanHandledRef = useRef(false)
 
   // Modal de Cobro & Vuelto & Quién Vendió
   const [showCobroModal, setShowCobroModal] = useState(false)
@@ -282,6 +283,7 @@ export default function AdminVentas() {
   // CÁMARA ESCÁNER QR EN MÓVIL
   const startCamera = async () => {
     setCameraError(null)
+    scanHandledRef.current = false
     setIsCameraActive(true)
 
     try {
@@ -310,11 +312,13 @@ export default function AdminVentas() {
       let lastScannedTime = 0
 
       scanIntervalRef.current = setInterval(async () => {
+        if (scanHandledRef.current) return
         if (!videoRef.current || videoRef.current.readyState < 2) return
 
         try {
           if (barcodeDetectorRef.current) {
             const barcodes = await barcodeDetectorRef.current.detect(videoRef.current)
+            if (scanHandledRef.current) return
             if (barcodes && barcodes.length > 0) {
               const rawValue = barcodes[0].rawValue?.trim()
               const now = Date.now()
@@ -331,7 +335,9 @@ export default function AdminVentas() {
                 )
 
                 if (found) {
+                  scanHandledRef.current = true
                   handleAddToCart(found)
+                  stopCamera()
                 } else {
                   setStatusMsg({ text: `Código no encontrado: "${rawValue}"`, type: 'error' })
                 }
@@ -352,6 +358,7 @@ export default function AdminVentas() {
 
   const stopCamera = () => {
     if (scanIntervalRef.current) clearInterval(scanIntervalRef.current)
+    scanIntervalRef.current = null
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop())
       streamRef.current = null
