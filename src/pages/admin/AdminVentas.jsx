@@ -24,6 +24,15 @@ function playBeep() {
   }
 }
 
+function speakProductAdded() {
+  if (typeof window === 'undefined' || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return
+  window.speechSynthesis.cancel()
+  const message = new window.SpeechSynthesisUtterance('Producto agregado correctamente')
+  message.lang = 'es-HN'
+  message.rate = 1
+  window.speechSynthesis.speak(message)
+}
+
 export default function AdminVentas() {
   const auth = useAdminAuth()
 
@@ -138,6 +147,13 @@ export default function AdminVentas() {
       return
     }
 
+    const activeSale = salesTabs.find(tab => tab.id === activeTabId)
+    const currentItem = activeSale?.items.find(item => item.id === product.id)
+    if (currentItem && currentItem.cantidad >= product.stock) {
+      setStatusMsg({ text: `Stock máximo alcanzado (${product.stock}) para ${product.nombre}`, type: 'error' })
+      return
+    }
+
     setSalesTabs(prev => prev.map(tab => {
       if (tab.id !== activeTabId) return tab
 
@@ -181,8 +197,9 @@ export default function AdminVentas() {
       text: `Agregado: ${product.nombre} ${product.marca ? `(${product.marca})` : ''} — ${fmtLPS(product.precio)}`,
       type: 'success'
     })
+    if (viewMode === 'mobile') speakProductAdded()
     setTimeout(() => setStatusMsg({ text: '', type: '' }), 2500)
-  }, [activeTabId, fmtLPS, pedidosPendientes])
+  }, [activeTabId, fmtLPS, pedidosPendientes, salesTabs, viewMode])
 
   // Escaneo con pistola lectora o enter manual en escritorio
   const handleBarcodeSubmit = (e) => {
