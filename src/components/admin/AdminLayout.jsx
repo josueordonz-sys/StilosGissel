@@ -1,4 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import './AdminLayout.css'
 
 const NAV_ITEMS = [
@@ -13,6 +14,16 @@ const NAV_ITEMS = [
 
 export default function AdminLayout() {
   const navigate = useNavigate()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [mobileMenuOpen])
 
   const handleLogout = () => {
     sessionStorage.removeItem('eg_admin_session')
@@ -23,14 +34,32 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-app">
+      <header className="admin-mobilebar">
+        <img src="/logo_sin_fondo.webp" alt="Stilos Gissel" className="admin-mobilebar__logo" />
+        <span className="admin-mobilebar__title">ADMINISTRACIÓN</span>
+        <button
+          type="button"
+          className="admin-mobilebar__toggle"
+          onClick={() => setMobileMenuOpen(open => !open)}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="admin-navigation"
+          aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+        >
+          {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+        </button>
+      </header>
+
       {/* Sidebar */}
-      <aside className="admin-sidebar">
+      <aside id="admin-navigation" className={`admin-sidebar ${mobileMenuOpen ? 'admin-sidebar--open' : ''}`}>
         <div className="admin-sidebar__brand">
           <img src="/logo_sin_fondo.webp" alt="Stilos Gissel" className="admin-sidebar__logo" />
           <div>
             <p className="admin-sidebar__brand-name">STILOS GISSEL</p>
             <p className="admin-sidebar__tag">PORTAL PRIVADO</p>
           </div>
+          <button type="button" className="admin-sidebar__mobile-close" onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú">
+            <CloseIcon />
+          </button>
         </div>
 
         <nav className="admin-sidebar__nav" aria-label="Menu de administración">
@@ -39,6 +68,7 @@ export default function AdminLayout() {
               key={to}
               to={to}
               end={end}
+              onClick={() => setMobileMenuOpen(false)}
               className={({ isActive }) =>
                 `admin-nav-item ${isActive ? 'admin-nav-item--active' : ''}`
               }
@@ -74,6 +104,12 @@ export default function AdminLayout() {
 }
 
 /* ── Inline SVG Icons ── */
+function MenuIcon() {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+}
+function CloseIcon() {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+}
 function ChartIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

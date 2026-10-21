@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAdminAuth } from '../../hooks/useAdminAuth'
 import AdminAuthGate from '../../components/admin/AdminAuthGate'
+import './AdminRoles.css'
 
 const ALL_PERMISOS = [
   { key: 'dashboard',   label: 'Dashboard' },
@@ -169,7 +170,7 @@ export default function AdminRoles() {
       </div>
 
       {activeTab === 'roles' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 'var(--space-lg)', alignItems: 'start' }}>
+        <div className="admin-roles-grid">
           {/* Formulario rol */}
           <div className="a-card">
             <p className="a-card-title">{editRol ? `Editando: ${editRol.nombre}` : 'Crear Nuevo Rol'}</p>
@@ -222,20 +223,17 @@ export default function AdminRoles() {
           {/* Lista de roles */}
           <div className="a-card">
             <p className="a-card-title">Roles Configurados</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
+            <div className="admin-roles-list">
               {roles.map(r => (
-                <div key={r.id} style={{
-                  padding: 'var(--space-md)', border: '1px solid var(--color-border)',
-                  background: 'var(--color-surface-soft)',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div key={r.id} className="admin-role-item">
+                  <div className="admin-role-item__header">
                     <strong style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>{r.nombre}</strong>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <div className="admin-role-item__actions">
                       <button type="button" className="a-btn a-btn-outline a-btn-sm" onClick={() => startEditRol(r)}>Editar</button>
                       <button type="button" className="a-btn a-btn-danger" onClick={() => handleDeleteRol(r.id, r.nombre)}>Eliminar</button>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                  <div className="admin-role-item__permissions">
                     {ALL_PERMISOS.map(({ key, label }) =>
                       r.permisos?.[key] ? (
                         <span key={key} className="a-badge a-badge--green">{label}</span>
@@ -252,7 +250,7 @@ export default function AdminRoles() {
       )}
 
       {activeTab === 'usuarios' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 'var(--space-lg)', alignItems: 'start' }}>
+        <div className="admin-users-grid">
           {/* Formulario usuario */}
           <div className="a-card">
             <p className="a-card-title">Agregar Usuario al Panel</p>

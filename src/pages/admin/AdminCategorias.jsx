@@ -4,6 +4,7 @@ import { useAdminAuth } from '../../hooks/useAdminAuth'
 import { useCategories } from '../../hooks/useCategories'
 import AdminAuthGate from '../../components/admin/AdminAuthGate'
 import ImageUploader from '../../components/ui/ImageUploader'
+import './AdminCategorias.css'
 
 const EMPTY_CAT = {
   nombre: '',
@@ -124,7 +125,7 @@ export default function AdminCategorias() {
         <div className={`a-status a-status--${statusMsg.type}`}>{statusMsg.text}</div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-lg)', alignItems: 'start' }}>
+      <div className="admin-categories-grid">
 
         {/* Formulario */}
         <div className="a-card">
@@ -224,24 +225,20 @@ export default function AdminCategorias() {
         {/* Lista */}
         <div className="a-card">
           <p className="a-card-title">Categorias Existentes</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
+          <div className="admin-categories-list">
             {categories.map(c => (
-              <div key={c.id ?? c.slug} style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--space-md)',
-                padding: 'var(--space-md)', border: '1px solid var(--color-border)',
-                background: 'var(--color-surface-soft)',
-              }}>
+              <div key={c.id ?? c.slug} className="admin-category-item">
                 <img
                   src={c.imagen_url}
                   alt={c.nombre}
-                  style={{ width: 56, height: 64, objectFit: 'cover', border: '1px solid var(--color-border)', flexShrink: 0 }}
+                  className="admin-category-item__image"
                 />
-                <div style={{ flex: 1 }}>
+                <div className="admin-category-item__details">
                   <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 500 }}>{c.nombre}</p>
                   <p style={{ fontSize: '0.68rem', color: 'var(--color-gold-dark)' }}>/{c.slug}</p>
                   {c.descripcion && <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>{c.descripcion}</p>}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                <div className="admin-category-item__actions">
                   <button type="button" className="a-btn a-btn-outline a-btn-sm" onClick={() => startEdit(c)}>Editar</button>
                   <button type="button" className="a-btn a-btn-danger" onClick={() => handleDelete(c.id, c.nombre)}>Eliminar</button>
                 </div>

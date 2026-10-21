@@ -54,6 +54,58 @@
   font-size: 0.75rem;
 }
 
+.image-uploader__actions {
+  display: flex;
+  justify-content: center;
+}
+
+.image-uploader__camera-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+}
+
+.image-uploader__camera-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  background: rgba(20, 18, 15, 0.72);
+}
+
+.image-uploader__camera-dialog {
+  width: min(100%, 560px);
+  padding: var(--space-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+}
+
+.image-uploader__camera-title {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-text-main);
+  font-size: 1.1rem;
+}
+
+.image-uploader__camera-video {
+  display: block;
+  width: 100%;
+  max-height: 65vh;
+  background: #111;
+  object-fit: contain;
+}
+
+.image-uploader__camera-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
 /* Loading Spinner */
 .image-uploader__loading {
   display: flex;
