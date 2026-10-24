@@ -37,3 +37,5 @@ VITE_SUPABASE_ANON_KEY=tu_anon_key
 1. Push a GitHub
 2. Conectar repositorio en Vercel
 3. Agregar variables de entorno en Vercel Dashboard
+
+Vercel usa `vercel.json` para enviar las rutas de React Router a la aplicación. Así `/admin` y sus subrutas abren directamente y sobreviven una recarga. Después del despliegue, prueba `/admin`, `/admin/inventario` y `/admin/ventas` en la URL de Vercel.
