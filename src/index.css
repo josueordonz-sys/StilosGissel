@@ -407,3 +407,12 @@ ul, ol {
     max-width: 140px;
   }
 }
+
+/* Evita el zoom automático de Safari móvil al enfocar campos de texto. */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
