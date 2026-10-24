@@ -382,12 +382,17 @@ export default function AdminInventario() {
               <input
                 id="inv-precio"
                 className="a-input"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9]*([.,][0-9]{0,2})?"
                 placeholder="0.00"
                 value={form.precio}
-                onChange={e => setForm(f => ({ ...f, precio: e.target.value }))}
+                onChange={e => {
+                  const normalized = e.target.value.replace(',', '.').replace(/[^0-9.]/g, '')
+                  const [whole, ...decimals] = normalized.split('.')
+                  const precio = decimals.length ? `${whole}.${decimals.join('').slice(0, 2)}` : whole
+                  setForm(f => ({ ...f, precio }))
+                }}
               />
             </div>
           </div>
