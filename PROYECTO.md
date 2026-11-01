@@ -1,6 +1,8 @@
-# PROYECTO.md — Memoria Completa: S'TILOS GISSEL
+# PROYECTO.md — Memoria Viva del Proyecto: S'TILOS GISSEL
 
-> **⚡ LEER ESTE ARCHIVO PRIMERO.** Contiene todo el contexto del proyecto para que el agente no tenga que escanear el código fuente completo en cada sesión. Actualizar este archivo con cada cambio relevante.
+> 🚨 **DIRECTIVA OBLIGATORIA DE MEMORIA CONTINUA:**  
+> **CADA CAMBIO, ACTUALIZACIÓN, CORRECCIÓN O NUEVA CARACTERÍSTICA QUE SE REALI VERIFIQUE O MODIFIQUE EN EL PROYECTO DEBE REGISTRARSE Y NOTIFICARSE INMEDIATAMENTE EN ESTE ARCHIVO (`PROYECTO.md`).**  
+> Este documento es la **memoria viva y permanente de todo lo que pasa en el proyecto**. El objetivo es que en las próximas actualizaciones cualquier IDE, asistente de IA o desarrollador consulte primero este `.md` para comprender todo el estado actual sin tener que reescanear todos los archivos del proyecto. Todo cambio debe quedar reflejado aquí.
 
 ---
 
@@ -388,6 +390,8 @@ Categorías por defecto: `perfumes`, `camisas`, `carteras`, `sandalias`, `zapato
 
 ## 12. Reglas de Diseño y Convenciones
 
+> 📝 **NOTIFICACIÓN Y REGISTRO EN MEMORIA:** Antes de cerrar cualquier tarea, confirmar que todos los cambios aplicados quedaron anotados y explicados en este archivo (`PROYECTO.md`).
+
 1. **`window.location.origin`** para URLs internas — nunca hardcodear dominio salvo fallback
 2. **`VITE_PUBLIC_SITE_URL` NO EXISTE** — no agregar ni usar
 3. **Comentarios en español** en todos los archivos
@@ -396,6 +400,7 @@ Categorías por defecto: `perfumes`, `camisas`, `carteras`, `sandalias`, `zapato
 6. **Productos nuevos son privados** por defecto (`publico: false`)
 7. **Moneda:** Lempiras (L.) formato `es-HN`, 2 decimales mínimo
 8. **Géneros válidos:** `mujer`, `hombre`, `unisex`
+9. **Actualizar la memoria (`PROYECTO.md`):** Todo ajuste en la lógica, base de datos, endpoints o UI debe reflejarse en las secciones correspondientes y en el Historial de Cambios.
 
 ### Clases CSS Admin importantes
 
@@ -583,6 +588,8 @@ npm-debug.log*
 | 11 | Fix `origin`: eliminado `VITE_PUBLIC_SITE_URL` → usa `window.location.origin` | `CartDrawer.jsx` |
 | 12 | WhatsApp endpoint: `api.whatsapp.com/send?phone=...` | `ProductDetail.jsx`, `CartDrawer.jsx` |
 | 13 | Detección móvil para `window.location.href` vs `window.open` | `CartDrawer.jsx` |
+| 14 | Creación de `PROYECTO.md` como memoria viva y actualización de seguridad en `.gitignore` | `PROYECTO.md`, `.gitignore` |
+| 15 | Directiva obligatoria de actualización de memoria continua en `PROYECTO.md` | `PROYECTO.md` |
 
 ---
 
