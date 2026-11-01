@@ -21,11 +21,13 @@
 
 ## 2. Variables de Entorno
 
-Archivo: `.env`
+> ⚠️ **REGLA DE SEGURIDAD:** NUNCA escribir valores reales de claves o tokens en este archivo ni en ningún archivo rastreado por Git.
+
+Estructura requerida en archivo local `.env`:
 
 ```env
-VITE_SUPABASE_URL=https://yibbhuauimlfabtnacwb.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_URL=https://<id-proyecto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<tu-supabase-anon-key>
 ```
 
 > **IMPORTANTE:** `VITE_PUBLIC_SITE_URL` **NO existe** en `.env` ni en Vercel. No usarla jamás.
@@ -434,7 +436,135 @@ git push origin main
 
 ---
 
-## 14. Historial de Cambios
+## 14. Seguridad en Git y Buenas Prácticas de Deploy
+
+> **REGLA DE ORO: Antes de cada `git push`, revisar que ningún archivo sensible esté incluido.**
+
+### ❌ NUNCA subir al repositorio
+
+| Archivo / Tipo | Ejemplo | Por qué es peligroso |
+|---|---|---|
+| Variables de entorno | `.env`, `.env.local`, `.env.production` | Expone claves de Supabase, tokens API y URLs privadas |
+| Claves privadas SSH | `id_rsa`, `id_ed25519`, `*.pem`, `*.key` | Acceso completo a servidores |
+| Contraseñas en texto plano | Cualquier archivo con passwords | Credenciales del negocio expuestas |
+| Tokens de API | Supabase anon key, tokens de Vercel, etc. | Acceso no autorizado a servicios de pago |
+| Bases de datos con datos reales | `*.sql`, `*.db`, `dump.sql` | Exposición de datos de clientes |
+| Archivos de configuración con secretos | `config.json` con credenciales | Compromete toda la infraestructura |
+
+> **IMPORTANTE:** El archivo `.env` de este proyecto **YA ESTÁ en `.gitignore`** — verificar que siga así antes de cada push. Las claves de Supabase solo deben existir en `.env` (local) y en el panel de Vercel (producción).
+
+### ✅ Verificación antes de publicar
+
+```bash
+# 1. Revisar qué archivos serán incluidos en el commit
+git status
+
+# 2. Ver el contenido exacto del diff antes de hacer commit
+git diff --staged
+
+# 3. Verificar que .env no está en el staging area
+git ls-files --cached | grep -i env
+
+# Si .env aparece en el resultado anterior, quitarlo inmediatamente:
+git rm --cached .env
+```
+
+### ✅ Commits pequeños y descriptivos
+
+Cada commit debe hacer una sola cosa y tener un mensaje claro. Facilita auditoría, revisión y reversión de cambios.
+
+```bash
+# ✅ Bueno — específico y trazable
+git commit -m "feat: agregar campo talla en formulario de inventario"
+git commit -m "fix: corregir URL de WhatsApp en móvil"
+git commit -m "docs: actualizar PROYECTO.md con historial de cambios"
+
+# ❌ Malo — vago e inutilizable para auditoría
+git commit -m "cambios"
+git commit -m "fix"
+git commit -m "arreglé cosas"
+```
+
+**Prefijos de convención recomendados:**
+
+| Prefijo | Cuándo usarlo |
+|---|---|
+| `feat:` | Nueva funcionalidad |
+| `fix:` | Corrección de error |
+| `docs:` | Solo documentación |
+| `style:` | Cambios de CSS/UI sin lógica |
+| `refactor:` | Reorganización de código sin cambiar comportamiento |
+| `chore:` | Tareas de mantenimiento (dependencias, configs) |
+
+### ✅ Usar repositorio privado
+
+Este proyecto (`josueordonz-sys/StilosGissel`) **debe mantenerse en privado** en GitHub ya que contiene:
+- Lógica de negocio de S'TILOS GISSEL
+- Números de cuentas bancarias de los titulares
+- Estructura de base de datos con datos reales del negocio
+
+Para verificar/cambiar la visibilidad: GitHub → Repo → Settings → Danger Zone → Change repository visibility.
+
+### ✅ Autenticación segura en GitHub
+
+- **Activar 2FA (verificación en dos pasos):** GitHub → Settings → Password and authentication → Enable two-factor authentication
+- **Usar SSH o Personal Access Token (PAT)** — nunca contraseña directa
+- **Configurar SSH:**
+  ```bash
+  # Generar clave SSH (si no existe)
+  ssh-keygen -t ed25519 -C "tu@email.com"
+
+  # Agregar al agente
+  ssh-add ~/.ssh/id_ed25519
+
+  # Copiar clave pública y agregarla en GitHub Settings → SSH Keys
+  cat ~/.ssh/id_ed25519.pub
+  ```
+- **Clonar con SSH** (no HTTPS con contraseña):
+  ```bash
+  git remote set-url origin git@github.com:josueordonz-sys/StilosGissel.git
+  ```
+
+### ✅ Proteger la rama principal (`main`)
+
+En proyectos compartidos o cuando hay múltiples colaboradores, activar la protección de rama:
+
+**GitHub → Repo → Settings → Branches → Add rule → `main`:**
+- ☑ Require pull request reviews before merging
+- ☑ Require status checks to pass (build de Vercel)
+- ☑ Do not allow bypassing the above settings
+
+Esto evita que alguien haga `git push --force` accidentalmente y borre el historial de producción.
+
+### ✅ .gitignore — Lo que debe estar siempre ignorado
+
+Verificar que el archivo `.gitignore` del proyecto contenga al menos:
+```
+# Variables de entorno — NUNCA subir
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Dependencias
+node_modules/
+
+# Build
+dist/
+build/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+```
+
+---
+
+## 15. Historial de Cambios
 
 ### 2026-11-01
 
@@ -456,7 +586,7 @@ git push origin main
 
 ---
 
-## 15. Problemas Conocidos
+## 16. Problemas Conocidos
 
 | Estado | Problema | Solución |
 |---|---|---|

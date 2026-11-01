@@ -4,12 +4,27 @@ dist/
 dist-ssr/
 *.local
 
-# Variables de entorno — NUNCA subir al repositorio
+# Variables de entorno y secretos — NUNCA subir al repositorio
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+
+# Claves privadas, certificados y credenciales
+*.pem
+*.key
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+*.cer
+*.crt
+
+# Bases de datos y volcados de datos reales
+*.dump
+*.sql.gz
+*.bak
+dump.sql
+backup.sql
 
 # macOS
 .DS_Store
