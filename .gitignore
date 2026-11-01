@@ -51,6 +51,7 @@ lerna-debug.log*
 # Build
 build/
 .cache/
+.vercel/
 
 # Coverage
 coverage/
