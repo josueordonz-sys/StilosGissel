@@ -8,4 +8,13 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  server: {
+    proxy: {
+      '/storage-img': {
+        target: 'https://yibbhuauimlfabtnacwb.supabase.co/storage/v1/object/public/productos',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/storage-img/, '')
+      }
+    }
+  }
 })

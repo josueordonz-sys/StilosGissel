@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabaseClient'
  * Soporta filtros dinámicos por categoría, género, destacados y búsqueda por texto.
  */
 export function useProducts(filters = {}) {
-  const { category, gender, search, featured, limit, minPrice, maxPrice, marca } = filters
+  const { category, gender, search, featured, limit, minPrice, maxPrice, marca, talla } = filters
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -26,6 +26,9 @@ export function useProducts(filters = {}) {
       }
       if (marca && marca !== 'todas') {
         query = query.ilike('marca', marca)
+      }
+      if (talla && talla !== 'todas') {
+        query = query.ilike('talla', talla)
       }
       if (featured) {
         query = query.eq('destacado', true)
@@ -66,7 +69,7 @@ export function useProducts(filters = {}) {
     } finally {
       setLoading(false)
     }
-  }, [category, gender, search, featured, limit, minPrice, maxPrice, marca])
+  }, [category, gender, search, featured, limit, minPrice, maxPrice, marca, talla])
 
   useEffect(() => {
     fetchProducts()

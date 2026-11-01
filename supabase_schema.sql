@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS public.productos (
   nombre TEXT NOT NULL,
   categoria TEXT NOT NULL,
   marca TEXT,                     -- Marca de la prenda o artículo (Guess, Zara, Shein, etc.)
+  talla TEXT,                     -- Talla de la prenda (S, M, L, XL, 38, etc.)
   genero TEXT NOT NULL CHECK (genero IN ('hombre', 'mujer', 'unisex')),
   precio NUMERIC(10, 2) NOT NULL,
   descripcion TEXT,
@@ -67,6 +68,7 @@ CREATE TABLE IF NOT EXISTS public.productos (
 -- Migración segura si la tabla ya existía
 ALTER TABLE public.categorias ADD COLUMN IF NOT EXISTS imagen_sin_fondo TEXT;
 ALTER TABLE public.productos ADD COLUMN IF NOT EXISTS marca TEXT;
+ALTER TABLE public.productos ADD COLUMN IF NOT EXISTS talla TEXT;
 ALTER TABLE public.productos ADD COLUMN IF NOT EXISTS codigo_barra TEXT;
 ALTER TABLE public.productos ADD COLUMN IF NOT EXISTS publico BOOLEAN DEFAULT false;
 ALTER TABLE public.productos ADD COLUMN IF NOT EXISTS stock INT DEFAULT 1;

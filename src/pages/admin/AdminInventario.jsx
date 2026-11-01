@@ -18,6 +18,7 @@ const GENEROS = ['mujer', 'hombre', 'unisex']
 const EMPTY_FORM = {
   nombre: '',
   marca: '',
+  talla: '',
   categoria: '',
   genero: 'mujer',
   precio: '',
@@ -141,6 +142,7 @@ export default function AdminInventario() {
     const payload = {
       nombre: nombre.trim(),
       marca: form.marca?.trim() || null,
+      talla: form.talla?.trim() || null,
       categoria: categoria.toLowerCase(),
       genero: form.genero,
       precio: parseFloat(precio),
@@ -174,7 +176,14 @@ export default function AdminInventario() {
       setForm({ ...EMPTY_FORM, codigo_barra: generateBarcode(), categoria: categories[0]?.slug || '' })
       loadData()
     } catch (err) {
-      setStatusMsg({ text: `Error: ${err.message}`, type: 'error' })
+      if (err.message?.includes('talla') || err.details?.includes('talla')) {
+        setStatusMsg({
+          text: `Aviso de base de datos: Debes habilitar la columna "talla" en Supabase SQL Editor ejecutando: ALTER TABLE public.productos ADD COLUMN IF NOT EXISTS talla TEXT; (${err.message})`,
+          type: 'error'
+        })
+      } else {
+        setStatusMsg({ text: `Error: ${err.message}`, type: 'error' })
+      }
     }
   }
 
@@ -195,6 +204,7 @@ export default function AdminInventario() {
     setForm({
       nombre: p.nombre,
       marca: p.marca || '',
+      talla: p.talla || '',
       categoria: p.categoria,
       genero: p.genero,
       precio: p.precio,
@@ -222,6 +232,7 @@ export default function AdminInventario() {
     const barcodeVal = qrProduct.codigo_barra || generateBarcode()
     const barcodeSvg = generateBarcodeSvg(barcodeVal, { height: 52, barWidth: 1.8, showText: true })
     const propNombre = qrProduct.propietarios?.nombre || (qrProduct.propietario_id === 'tienda-shein' ? 'Tienda Shein' : 'Tienda Gissel')
+    const tallaInfo = qrProduct.talla ? ` • Talla: ${qrProduct.talla}` : ''
     const qrWithLogoHtml = getQrWithLogoImgHtml(qrUrl, 130)
 
     const win = window.open('', '_blank')
@@ -296,7 +307,7 @@ export default function AdminInventario() {
               <img src="/logo_sin_fondo.webp" class="tag-logo" alt="Logo" />
               <h1 class="tag-brand-title">S'TILOS GISSEL</h1>
             </div>
-            <p class="tag-subtitle">${propNombre}${qrProduct.marca ? ` • ${qrProduct.marca}` : ''}</p>
+            <p class="tag-subtitle">${propNombre}${qrProduct.marca ? ` • ${qrProduct.marca}` : ''}${tallaInfo}</p>
             <p class="tag-prod-name">${qrProduct.nombre}</p>
             <div class="tag-price">L. ${Number(qrProduct.precio).toFixed(2)}</div>
             <hr class="tag-divider" />
@@ -308,7 +319,7 @@ export default function AdminInventario() {
               ${barcodeSvg}
             </div>
             <div class="tag-badge">
-              ${qrProduct.categoria} • ${qrProduct.genero}${qrProduct.publico ? ' • Web' : ' • Tienda'}
+              ${qrProduct.categoria} • ${qrProduct.genero}${qrProduct.talla ? ` • Talla ${qrProduct.talla}` : ''}${qrProduct.publico ? ' • Web' : ' • Tienda'}
             </div>
           </div>
           <script>window.onload = () => { setTimeout(() => window.print(), 600); }<\/script>
@@ -324,6 +335,7 @@ export default function AdminInventario() {
     const matchSearch = !search ||
       p.nombre?.toLowerCase().includes(q) ||
       p.marca?.toLowerCase().includes(q) ||
+      p.talla?.toLowerCase().includes(q) ||
       p.codigo_barra?.toLowerCase().includes(q)
     const matchCat = !filterCat || p.categoria === filterCat
     return matchSearch && matchCat
@@ -378,6 +390,20 @@ export default function AdminInventario() {
               />
             </div>
             <div className="a-field">
+              <label htmlFor="inv-talla" className="a-label">Talla</label>
+              <input
+                id="inv-talla"
+                className="a-input"
+                placeholder="Ej: S, M, L, XL, 38, Única..."
+                value={form.talla}
+                onChange={e => setForm(f => ({ ...f, talla: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          {/* Fila 2 */}
+          <div className="a-form-row-4">
+            <div className="a-field">
               <label htmlFor="inv-precio" className="a-label">Precio (Lempiras) *</label>
               <input
                 id="inv-precio"
@@ -395,10 +421,6 @@ export default function AdminInventario() {
                 }}
               />
             </div>
-          </div>
-
-          {/* Fila 2 */}
-          <div className="a-form-row-3">
             <div className="a-field">
               <label htmlFor="inv-categoria" className="a-label">Categoria *</label>
               <select
@@ -604,6 +626,7 @@ export default function AdminInventario() {
                   <th>Foto</th>
                   <th>Nombre</th>
                   <th>Marca</th>
+                  <th>Talla</th>
                   <th>Código de Barra</th>
                   <th>Categoria</th>
                   <th>Genero</th>
@@ -617,7 +640,7 @@ export default function AdminInventario() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan="11" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+                    <td colSpan="12" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
                       Sin productos. Agrega el primero usando el formulario.
                     </td>
                   </tr>
@@ -630,6 +653,12 @@ export default function AdminInventario() {
                     <td>
                       {p.marca
                         ? <span className="a-badge a-badge--gold">{p.marca}</span>
+                        : <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+                      }
+                    </td>
+                    <td>
+                      {p.talla
+                        ? <span className="a-badge a-badge--gold" style={{ letterSpacing: '0.04em' }}>{p.talla}</span>
                         : <span style={{ color: 'var(--color-text-muted)' }}>—</span>
                       }
                     </td>
@@ -715,6 +744,7 @@ export default function AdminInventario() {
             <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center', marginBottom: '0.8rem', flexWrap: 'wrap' }}>
               <span className="a-badge a-badge--gold">{qrProduct.propietarios?.nombre || (qrProduct.propietario_id === 'tienda-shein' ? 'Tienda Shein' : 'Tienda Gissel')}</span>
               {qrProduct.marca && <span className="a-badge a-badge--gray">{qrProduct.marca}</span>}
+              {qrProduct.talla && <span className="a-badge a-badge--gold">Talla: {qrProduct.talla}</span>}
               <span className={`a-badge ${qrProduct.publico ? 'a-badge--green' : 'a-badge--gray'}`}>
                 {qrProduct.publico ? 'Catálogo Web + Tienda' : 'Solo Venta en Tienda'}
               </span>

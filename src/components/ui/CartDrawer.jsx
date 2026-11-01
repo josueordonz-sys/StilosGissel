@@ -128,58 +128,64 @@ export default function CartDrawer() {
     }
   }
 
-  // Genera URL de WhatsApp estructurado con fotos, descripción y detalles del pedido
+  // Genera URL de WhatsApp estructurado de forma limpia y elegante con enlaces de la tienda
   const generateWhatsAppUrl = (isTransfer = false) => {
     if (items.length === 0) return '#'
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://estilosgissel.com'
+    const origin =
+      (typeof window !== 'undefined' && window.location.origin)
+        ? window.location.origin
+        : 'https://estilosgissel.com'
 
     let message = ''
 
     if (isTransfer) {
       message += `*CONFIRMACIÓN DE TRANSFERENCIA — S'TILOS GISSEL*\n`
-      message += `WhatsApp Oficial: ${WHATSAPP_DISPLAY}\n\n`
-      message += `*DETALLE DEL PEDIDO:*\n`
     } else {
       message += `*NUEVO PEDIDO — S'TILOS GISSEL*\n`
-      message += `WhatsApp Oficial: ${WHATSAPP_DISPLAY}\n\n`
-      message += `*DETALLE DE ARTÍCULOS:*\n`
     }
-    message += `Teléfono del cliente: ${phoneRegion} ${customerPhone.trim()}\n\n`
+
+    message += `━━━━━━━━━━━━━━━━━━━━━\n`
+    message += `*Cliente:* ${phoneRegion} ${customerPhone.trim()}\n`
+    message += `━━━━━━━━━━━━━━━━━━━━━\n\n`
+    message += `*DETALLE DEL PEDIDO:*\n`
 
     items.forEach((item, index) => {
       const p = item.product
-      const colorStr = item.selectedColor?.name
-        ? ` | Color: ${item.selectedColor.name}`
-        : ''
       const price = Number(p.precio) || 0
       const formatted = `L. ${(price * item.quantity).toLocaleString('es-HN', {
         minimumFractionDigits: 2
       })}`
+      const productUrl = `${origin}/producto/${p.id}`
 
-      // URL absoluta de la foto para que WhatsApp genere vista previa y permita abrir la foto
+      // Convertir la URL de la foto para que se sirva desde el dominio de la tienda
+      // evitando decir supabase.co y permitiendo que WhatsApp genere vista previa de la prenda
       const rawImg = item.selectedColor?.imagen_url || p.imagen_url || ''
-      const fullImgUrl = rawImg.startsWith('http')
-        ? rawImg
+      const cleanImgUrl = rawImg.startsWith('http')
+        ? rawImg.replace(/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/productos/, `${origin}/storage-img`)
         : rawImg ? `${origin}${rawImg}` : ''
 
-      message += `\n${index + 1}. *${p.nombre}*${colorStr}\n`
+      message += `\n${index + 1}. *${p.nombre}*\n`
+      if (p.marca && !p.nombre.toLowerCase().includes(p.marca.toLowerCase())) {
+        message += `   • Marca: ${p.marca}\n`
+      }
+      if (p.talla) {
+        message += `   • Talla: ${p.talla}\n`
+      }
+      if (item.selectedColor?.name) {
+        message += `   • Color: ${item.selectedColor.name}\n`
+      }
       message += `   • Cantidad: ${item.quantity}\n`
       message += `   • Subtotal: ${formatted}\n`
-      if (p.descripcion) {
-        // Descripción breve del producto
-        const cleanDesc = p.descripcion.replace(/\n+/g, ' ').slice(0, 110)
-        message += `   • Descripción: ${cleanDesc}${p.descripcion.length > 110 ? '...' : ''}\n`
-      }
-      if (fullImgUrl) {
-        message += `   • Foto del producto: ${fullImgUrl}\n`
+      // URL de imagen sola — WhatsApp genera vista previa automáticamente
+      if (cleanImgUrl) {
+        message += `${cleanImgUrl}\n`
       }
     })
 
-    message += `\n─────────────────────\n`
+    message += `\n━━━━━━━━━━━━━━━━━━━━━\n`
     message += `*TOTAL A PAGAR: ${formattedSubtotal}*\n`
-    message += `*MÉTODO DE PAGO:* ${isTransfer ? 'Transferencia Bancaria' : 'WhatsApp Directo'}\n`
-    message += `─────────────────────\n\n`
+    message += `━━━━━━━━━━━━━━━━━━━━━\n\n`
 
     if (isTransfer) {
       message += `Hola S'TILOS GISSEL, ya realicé la transferencia bancaria para este pedido. Adjunto aquí la fotografía de mi comprobante de pago.`
@@ -187,7 +193,7 @@ export default function CartDrawer() {
       message += `Hola S'TILOS GISSEL, deseo consultar disponibilidad y coordinar el envío de mi pedido.`
     }
 
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+    return `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}`
   }
 
   const handleOrder = async (event, isTransfer = false) => {
@@ -199,6 +205,27 @@ export default function CartDrawer() {
     }
     setOrderError('')
     setSavingOrder(true)
+
+    const whatsappUrl = generateWhatsAppUrl(isTransfer)
+
+    // Detección de dispositivo móvil para evitar bloqueadores de popups
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent || navigator.vendor || window.opera || ''
+    )
+
+    // En computadoras abrimos la pestaña sincrónicamente durante el evento de click
+    // para que el bloqueador de ventanas emergentes nunca la detenga tras la consulta
+    let newTab = null
+    if (!isMobile && typeof window !== 'undefined') {
+      try {
+        newTab = window.open('about:blank', '_blank')
+      } catch {
+        newTab = null
+      }
+    }
+
+    // Registrar pedido en segundo plano con límite de tiempo (1.5s max)
+    // para que jamás impida la apertura de WhatsApp si la red móvil está lenta
     try {
       const rows = items.map(item => ({
         producto_id: item.product.id,
@@ -206,21 +233,49 @@ export default function CartDrawer() {
         precio: Number(item.product.precio) || 0,
         nombre_cliente: 'Pedido por WhatsApp',
         telefono: `${phoneRegion} ${customerPhone.trim()}`,
-        notas: [item.selectedColor?.name && `Color: ${item.selectedColor.name}`, `Cantidad: ${item.quantity}`, `Método de pago: ${isTransfer ? 'Transferencia bancaria' : 'WhatsApp directo'}`].filter(Boolean).join(' | '),
+        notas: [
+          item.product.talla && `Talla: ${item.product.talla}`,
+          item.selectedColor?.name && `Color: ${item.selectedColor.name}`,
+          `Cantidad: ${item.quantity}`,
+          `Método de pago: ${isTransfer ? 'Transferencia bancaria' : 'WhatsApp directo'}`
+        ].filter(Boolean).join(' | '),
         estado: 'pendiente'
       }))
-      const { error } = await supabase.from('pedidos').insert(rows)
-      if (error) throw error
-      window.open(generateWhatsAppUrl(isTransfer), '_blank', 'noopener,noreferrer')
+
+      const savePromise = supabase.from('pedidos').insert(rows)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 1500)
+      )
+      await Promise.race([savePromise, timeoutPromise])
+    } catch (err) {
+      console.warn('Registro en segundo plano (continuando hacia WhatsApp):', err)
+    }
+
+    // Navegación inmediata a WhatsApp garantizada sin bloqueador de popups
+    if (isMobile) {
+      // En teléfonos móviles (iPhone, Android) redirigimos directamente para abrir la aplicación nativa de WhatsApp
+      window.location.href = whatsappUrl
+      setTimeout(() => {
+        clearCart()
+        setCustomerPhone('')
+        setPhoneRegion('+504')
+        setPaymentMethod('whatsapp')
+        setSavingOrder(false)
+        closeCart()
+      }, 1000)
+    } else {
+      // En computadoras de escritorio usamos la pestaña pre-abierta o redirigimos
+      if (newTab && !newTab.closed) {
+        newTab.location.href = whatsappUrl
+      } else {
+        window.location.href = whatsappUrl
+      }
       clearCart()
       setCustomerPhone('')
       setPhoneRegion('+504')
       setPaymentMethod('whatsapp')
-      closeCart()
-    } catch (error) {
-      setOrderError(`No se pudo registrar el pedido: ${error.message}`)
-    } finally {
       setSavingOrder(false)
+      closeCart()
     }
   }
 
@@ -329,6 +384,11 @@ export default function CartDrawer() {
                             {p.nombre}
                           </Link>
                         </h4>
+                        {p.talla && (
+                          <span className="cart-item__size-badge" style={{ fontSize: '0.68rem', color: 'var(--color-gold-dark)', fontWeight: 600 }}>
+                            Talla: {p.talla}
+                          </span>
+                        )}
                       </div>
 
                       {item.selectedColor && (

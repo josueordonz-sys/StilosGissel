@@ -13,12 +13,14 @@ export default function Home() {
   const [selectedCat, setSelectedCat] = useState('todas')
   const [selectedMarca, setSelectedMarca] = useState('todas')
   const [selectedGender, setSelectedGender] = useState('todos')
+  const [selectedTalla, setSelectedTalla] = useState('todas')
   const [pricePreset, setPricePreset] = useState('all')
   const [customMin, setCustomMin] = useState('')
   const [customMax, setCustomMax] = useState('')
   const [availableMarcas, setAvailableMarcas] = useState([])
+  const [availableTallas, setAvailableTallas] = useState([])
 
-  // Cargar marcas únicas registradas en los productos
+  // Cargar marcas y tallas únicas registradas en los productos
   useEffect(() => {
     supabase
       .from('productos')
@@ -31,6 +33,20 @@ export default function Home() {
         }
       })
       .catch(console.error)
+
+    supabase
+      .from('productos')
+      .select('talla')
+      .not('talla', 'is', null)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const unique = [...new Set(data.map(p => p.talla?.trim()).filter(Boolean))].sort()
+          setAvailableTallas(unique)
+        }
+      })
+      .catch(() => {
+        // Ignora si la columna talla no existe aún
+      })
   }, [])
 
   // Calcular rango de precio según preset seleccionado
@@ -48,6 +64,7 @@ export default function Home() {
     category: selectedCat === 'todas' ? null : selectedCat,
     gender: selectedGender === 'todos' ? null : selectedGender,
     marca: selectedMarca === 'todas' ? null : selectedMarca,
+    talla: selectedTalla === 'todas' ? null : selectedTalla,
     minPrice,
     maxPrice,
     limit: 12
@@ -295,6 +312,25 @@ export default function Home() {
                 <option value="unisex">Unisex</option>
               </select>
             </div>
+
+            {/* Talla */}
+            {availableTallas.length > 0 && (
+              <div className="explorer-select-group">
+                <label htmlFor="explorer-size" className="overline">Talla</label>
+                <select
+                  id="explorer-size"
+                  name="size"
+                  value={selectedTalla}
+                  onChange={e => setSelectedTalla(e.target.value)}
+                  className="sort-select"
+                >
+                  <option value="todas">Todas las Tallas</option>
+                  {availableTallas.map(t => (
+                    <option key={t} value={t}>Talla {t}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

@@ -277,6 +277,12 @@
   gap: var(--space-md);
 }
 
+.a-form-row-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: var(--space-md);
+}
+
 .a-field {
   display: flex;
   flex-direction: column;
@@ -698,7 +704,8 @@
   }
 
   .a-form-row,
-  .a-form-row-3 {
+  .a-form-row-3,
+  .a-form-row-4 {
     grid-template-columns: 1fr;
   }
 }

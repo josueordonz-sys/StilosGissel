@@ -49,11 +49,21 @@ export default function ProductDetail() {
     ? `L. ${Number(product.precio).toLocaleString('es-HN', { minimumFractionDigits: 2 })}`
     : null
 
-  // Mensaje de consulta formal sin emojis
+  const storeBase =
+    typeof window !== 'undefined' &&
+    window.location.hostname &&
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1')
+      ? window.location.origin
+      : 'https://estilosgissel.com'
+
+  const productUrl = `${storeBase}/producto/${product.id}`
+  const tallaInfo = product.talla ? ` (Talla: ${product.talla})` : ''
   const whatsappMessage = encodeURIComponent(
-    `Hola S’TILOS GISSEL. Deseo consultar disponibilidad del producto: ${product.nombre} (Referencia: ${product.id}).`
+    `Hola S'TILOS GISSEL, deseo consultar disponibilidad de la prenda:\n• *${product.nombre}*${tallaInfo}\n• Ver prenda: ${productUrl}`
   )
-  const whatsappUrl = `https://wa.me/?text=${whatsappMessage}`
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=50497941476&text=${whatsappMessage}`
+  const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '')
 
   return (
     <div className="product-detail-page">
@@ -94,6 +104,7 @@ export default function ProductDetail() {
           <div className="product-detail__info">
             <div className="product-detail__meta">
               {product.marca && <span className="tag tag--brand">{product.marca}</span>}
+              {product.talla && <span className="tag tag--size">Talla: {product.talla}</span>}
               <span className="overline">{product.categoria}</span>
               {product.genero && <span className="tag">{product.genero}</span>}
             </div>
@@ -128,7 +139,7 @@ export default function ProductDetail() {
               </button>
               <a
                 href={whatsappUrl}
-                target="_blank"
+                target={isMobile ? '_self' : '_blank'}
                 rel="noopener noreferrer"
                 className="btn btn-outline product-detail__btn-order"
                 id="btn-whatsapp-inquire"

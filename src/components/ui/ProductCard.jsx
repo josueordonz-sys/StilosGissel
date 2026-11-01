@@ -24,6 +24,7 @@ export default function ProductCard({ product }) {
     categoria,
     genero,
     marca,
+    talla,
     destacado,
     nuevo,
     badge,
@@ -98,6 +99,13 @@ export default function ProductCard({ product }) {
           </span>
         )}
 
+        {/* Badge de Talla sobre la foto */}
+        {talla && (
+          <span className="product-card__size-tag" title={`Talla ${talla}`}>
+            Talla {talla}
+          </span>
+        )}
+
         {currentImage ? (
           <img
             src={currentImage}
@@ -132,10 +140,17 @@ export default function ProductCard({ product }) {
           </button>
         </div>
 
-        {/* Precio */}
-        {formattedPrice && (
-          <p className="product-card__price">{formattedPrice}</p>
-        )}
+        {/* Fila de Precio y Talla */}
+        <div className="product-card__meta-row">
+          {formattedPrice && (
+            <p className="product-card__price">{formattedPrice}</p>
+          )}
+          {talla && (
+            <span className="product-card__size-badge" title={`Talla ${talla}`}>
+              Talla: {talla}
+            </span>
+          )}
+        </div>
 
         {/* Swatches de Color con barra indicadora activa inferior */}
         {swatches && swatches.length > 0 && (
