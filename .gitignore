@@ -54,3 +54,6 @@ build/
 
 # Coverage
 coverage/
+
+# Documentación privada y archivos de memoria — NO subir al repositorio
+*.md
