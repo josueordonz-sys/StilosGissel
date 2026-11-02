@@ -396,7 +396,7 @@ export default function AdminInventario() {
                     defaultValue=""
                     title="Copiar nombre ya registrado"
                   >
-                    <option value="" disabled>⚡ Usar nombre...</option>
+                    <option value="" disabled>Usar nombre...</option>
                     {sugerencias.nombres.map((nom, idx) => (
                       <option key={idx} value={nom}>{nom}</option>
                     ))}
@@ -435,7 +435,7 @@ export default function AdminInventario() {
                     defaultValue=""
                     title="Copiar marca ya registrada"
                   >
-                    <option value="" disabled>⚡ Elegir marca...</option>
+                    <option value="" disabled>Elegir marca...</option>
                     {sugerencias.marcas.map((m, idx) => (
                       <option key={idx} value={m}>{m}</option>
                     ))}
@@ -469,7 +469,7 @@ export default function AdminInventario() {
                         onClick={() => setForm(f => ({ ...f, marca: isSelected ? '' : m }))}
                         title={isSelected ? 'Deseleccionar marca' : `Seleccionar ${m}`}
                       >
-                        {isSelected ? `✓ ${m}` : m}
+                        {m}
                       </button>
                     )
                   })}
@@ -493,7 +493,7 @@ export default function AdminInventario() {
                     defaultValue=""
                     title="Copiar talla ya registrada"
                   >
-                    <option value="" disabled>⚡ Elegir talla...</option>
+                    <option value="" disabled>Elegir talla...</option>
                     {sugerencias.tallas.map((t, idx) => (
                       <option key={idx} value={t}>{t}</option>
                     ))}
@@ -526,7 +526,7 @@ export default function AdminInventario() {
                       onClick={() => setForm(f => ({ ...f, talla: isSelected ? '' : t }))}
                       title={isSelected ? 'Deseleccionar talla' : `Seleccionar talla ${t}`}
                     >
-                      {isSelected ? `✓ ${t}` : t}
+                      {t}
                     </button>
                   )
                 })}
@@ -625,7 +625,7 @@ export default function AdminInventario() {
                   defaultValue=""
                   title="Copiar descripción anterior"
                 >
-                  <option value="" disabled>⚡ Usar descripción anterior...</option>
+                  <option value="" disabled>Usar descripción anterior...</option>
                   {sugerencias.descripciones.slice(0, 15).map((d, idx) => (
                     <option key={idx} value={d}>
                       {d.length > 38 ? `${d.slice(0, 38)}...` : d}
@@ -655,7 +655,7 @@ export default function AdminInventario() {
                       onClick={() => setForm(f => ({ ...f, descripcion: isSelected ? '' : d }))}
                       title={d}
                     >
-                      {isSelected ? `✓ ${preview}` : `+ "${preview}"`}
+                      {preview}
                     </button>
                   )
                 })}
