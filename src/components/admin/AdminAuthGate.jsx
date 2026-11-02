@@ -1,4 +1,4 @@
-/* Pantalla de autenticación oficial verificada exclusivamente por Supabase */
+/* Pantalla de autenticación oficial verificada por Supabase con Rate Limiting */
 export default function AdminAuthGate({ auth }) {
   const {
     emailInput,
@@ -7,8 +7,11 @@ export default function AdminAuthGate({ auth }) {
     setPasswordInput,
     handleLogin,
     submitting,
-    statusMsg
+    statusMsg,
+    lockoutRemaining
   } = auth
+
+  const isLocked = lockoutRemaining > 0
 
   return (
     <div className="admin-auth-wrapper">
@@ -30,7 +33,36 @@ export default function AdminAuthGate({ auth }) {
           </p>
         </div>
 
-        {statusMsg?.text && (
+        {/* Banner de Rate Limit activo */}
+        {isLocked && (
+          <div
+            style={{
+              background: '#fef2f2',
+              border: '1.5px solid #f87171',
+              borderRadius: '8px',
+              padding: '0.75rem 1rem',
+              marginBottom: '1.25rem',
+              textAlign: 'center',
+              animation: 'pulse 2s infinite'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', color: '#b91c1c', fontWeight: 700, fontSize: '0.8rem', marginBottom: '4px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Rate Limit Activado
+            </div>
+            <p style={{ margin: 0, fontSize: '0.74rem', color: '#991b1b', lineHeight: 1.4 }}>
+              Demasiados intentos fallidos. Bloqueado por seguridad:
+              <strong style={{ display: 'block', fontSize: '1.1rem', marginTop: '4px', color: '#b91c1c' }}>
+                {lockoutRemaining}s
+              </strong>
+            </p>
+          </div>
+        )}
+
+        {statusMsg?.text && !isLocked && (
           <div
             className={`a-status a-status--${statusMsg.type}`}
             style={{
@@ -64,7 +96,7 @@ export default function AdminAuthGate({ auth }) {
               placeholder="tu-correo@ejemplo.com"
               value={emailInput}
               onChange={e => setEmailInput(e.target.value)}
-              disabled={submitting}
+              disabled={submitting || isLocked}
               autoFocus
               style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem 0.85rem' }}
             />
@@ -87,7 +119,7 @@ export default function AdminAuthGate({ auth }) {
               placeholder="••••••••••••"
               value={passwordInput}
               onChange={e => setPasswordInput(e.target.value)}
-              disabled={submitting}
+              disabled={submitting || isLocked}
               style={{ width: '100%', boxSizing: 'border-box', padding: '0.65rem 0.85rem' }}
             />
           </div>
@@ -95,17 +127,24 @@ export default function AdminAuthGate({ auth }) {
           <button
             type="submit"
             className="a-btn a-btn-primary"
-            disabled={submitting}
+            disabled={submitting || isLocked}
             style={{
               width: '100%',
               justifyContent: 'center',
               padding: '0.75rem',
               marginTop: '0.5rem',
               fontSize: '0.8rem',
-              fontWeight: 600
+              fontWeight: 600,
+              background: isLocked ? '#9ca3af' : undefined,
+              borderColor: isLocked ? '#9ca3af' : undefined,
+              cursor: isLocked ? 'not-allowed' : 'pointer'
             }}
           >
-            {submitting ? 'Verificando en Supabase...' : 'Iniciar Sesión'}
+            {isLocked
+              ? `Bloqueado temporalmente (${lockoutRemaining}s)`
+              : submitting
+              ? 'Verificando en Supabase...'
+              : 'Iniciar Sesión'}
           </button>
         </form>
 
@@ -114,7 +153,7 @@ export default function AdminAuthGate({ auth }) {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            Acceso seguro autenticado por Supabase
+            Protección de fuerza bruta (Rate Limit) • Supabase Auth
           </span>
         </div>
       </div>

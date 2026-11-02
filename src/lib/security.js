@@ -107,3 +107,4 @@ export async function fetchClientPublicIp() {
     return 'IP_NO_DISPONIBLE'
   }
 }
+

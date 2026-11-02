@@ -16,24 +16,19 @@ import AdminCategorias  from './pages/admin/AdminCategorias'
 import AdminVentas      from './pages/admin/AdminVentas'
 import AdminPedidos     from './pages/admin/AdminPedidos'
 import AdminRoles       from './pages/admin/AdminRoles'
-import AdminRestricted  from './pages/admin/AdminRestricted'
+import AdminNotFound    from './pages/admin/AdminNotFound'
 import AdminHistorial   from './pages/admin/AdminHistorial'
 
-// Guard: en el dominio público de producción, bloquea cualquier acceso a /admin
+// Guard: en el dominio público de producción, bloquea cualquier acceso a /admin mostrando 404
 function ProductionAdminGuard({ children }) {
-  const [searchParams] = useSearchParams()
-  const navigate = useNavigate()
+  const host = typeof window !== 'undefined' ? window.location.hostname : ''
+  const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1')
+  const isSubdomainAdmin = host.startsWith('admin.')
 
-  useEffect(() => {
-    const host = window.location.hostname
-    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1')
-    const isSubdomainAdmin = host.startsWith('admin.')
-
-    // Si está en producción y NO es el subdominio admin, bloquear acceso a /admin
-    if (!isSubdomainAdmin && !isLocalhost) {
-      navigate('/admin-restringido', { replace: true })
-    }
-  }, [navigate, searchParams])
+  // Si está en producción y NO es el subdominio admin, responde con la página 404 personalizada
+  if (!isSubdomainAdmin && !isLocalhost) {
+    return <AdminNotFound />
+  }
 
   return children
 }
@@ -55,7 +50,7 @@ export default function App() {
             <Route path="pedidos"    element={<AdminPedidos />} />
             <Route path="roles"      element={<AdminRoles />} />
             <Route path="historial"  element={<AdminHistorial />} />
-            <Route path="*"          element={<AdminDashboard />} />
+            <Route path="*"          element={<AdminNotFound />} />
           </Route>
         </Routes>
       </BrowserRouter>
@@ -67,7 +62,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
 
-          {/* ── ADMIN en dominio público: protegido con guard ── */}
+          {/* ── ADMIN en dominio público: protegido con guard que retorna 404 ── */}
           <Route
             path="/admin"
             element={
@@ -83,8 +78,9 @@ export default function App() {
             <Route path="pedidos"     element={<AdminPedidos />} />
             <Route path="roles"       element={<AdminRoles />} />
             <Route path="historial"   element={<AdminHistorial />} />
+            <Route path="*"           element={<AdminNotFound />} />
           </Route>
-          <Route path="/admin-restringido" element={<AdminRestricted />} />
+          <Route path="/admin/*" element={<ProductionAdminGuard><AdminNotFound /></ProductionAdminGuard>} />
 
           {/* ── TIENDA PÚBLICA (estilosgissel.com / www.estilosgissel.com) ── */}
           <Route path="/" element={<Layout />}>
