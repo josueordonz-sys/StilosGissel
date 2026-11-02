@@ -27,22 +27,188 @@
 }
 
 .product-detail__main-image-wrap {
+  position: relative;
   aspect-ratio: 4 / 5;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  border-radius: 6px;
+  cursor: zoom-in;
+  transition: all var(--transition-fast);
+}
+
+.product-detail__main-image-wrap--contain {
+  background: #f7f5f0;
 }
 
 .product-detail__main-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-slow);
+  transition: transform var(--transition-slow), opacity 0.2s ease;
+  display: block;
 }
 
-.product-detail__main-image-wrap:hover .product-detail__main-image {
-  transform: scale(1.04);
+.product-detail__main-image--cover {
+  object-fit: cover;
+}
+
+.product-detail__main-image--contain {
+  object-fit: contain;
+  padding: 8px;
+}
+
+.product-detail__main-image-wrap:hover .product-detail__main-image--cover {
+  transform: scale(1.03);
+}
+
+/* Badges y botones flotantes sobre la imagen */
+.product-detail__image-badges {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 6;
+}
+
+.product-detail__image-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.product-detail__image-btn:hover {
+  background: #ffffff;
+  border-color: var(--color-gold);
+  color: var(--color-gold-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.product-detail__image-btn.active {
+  background: var(--color-text-main);
+  color: #ffffff;
+  border-color: var(--color-text-main);
+}
+
+/* Barra de herramientas accesible debajo de la foto */
+.product-detail__image-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 2px 2px;
+}
+
+.product-detail__tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.product-detail__tool-btn:hover {
+  background: var(--color-surface);
+  border-color: var(--color-gold);
+  color: var(--color-text-main);
+}
+
+.product-detail__tool-btn.active {
+  background: #f4efe8;
+  border-color: #d4c5a4;
+  color: #7a6540;
+  font-weight: 600;
+}
+
+/* Modal Lightbox para ver la imagen 100% completa sin recorte */
+.product-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.25s ease;
+}
+
+.product-lightbox__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  z-index: 1010;
+}
+
+.product-lightbox__close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+}
+
+.product-lightbox__content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-lightbox__img {
+  max-width: 92vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  background: #ffffff;
+}
+
+.product-lightbox__caption {
+  margin-top: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.88rem;
+  text-align: center;
+  letter-spacing: 0.03em;
 }
 
 /* Información */

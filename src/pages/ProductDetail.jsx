@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useProduct, useProducts } from '../hooks/useProducts'
 import { useCart } from '../context/CartContext'
@@ -8,6 +9,25 @@ export default function ProductDetail() {
   const { id } = useParams()
   const { product, loading } = useProduct(id)
   const { addToCart } = useCart()
+
+  // Modo de ajuste de imagen: 'cover' (editorial) o 'contain' (sin recorte / completa)
+  const [fitMode, setFitMode] = useState('cover')
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+
+  // Cerrar lightbox con tecla Escape y bloquear scroll de fondo
+  useEffect(() => {
+    if (!isLightboxOpen) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [isLightboxOpen])
 
   const { products: relatedProducts, loading: loadingRelated } = useProducts({
     category: product?.categoria,
@@ -89,14 +109,88 @@ export default function ProductDetail() {
 
         {/* Detalle principal */}
         <div className="product-detail__layout">
-          {/* Galería / Imagen */}
+          {/* Galería / Imagen con controles para ver completa sin recorte */}
           <div className="product-detail__gallery">
-            <div className="product-detail__main-image-wrap">
+            <div
+              className={`product-detail__main-image-wrap ${fitMode === 'contain' ? 'product-detail__main-image-wrap--contain' : ''}`}
+              onClick={() => setIsLightboxOpen(true)}
+              title="Haz clic para ver la prenda en pantalla completa"
+            >
+              {/* Botones flotantes sobre la foto */}
+              <div className="product-detail__image-badges" onClick={e => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className={`product-detail__image-btn ${fitMode === 'contain' ? 'active' : ''}`}
+                  onClick={() => setFitMode(f => f === 'cover' ? 'contain' : 'cover')}
+                  title={fitMode === 'cover' ? 'Ver foto completa sin recortes' : 'Volver a vista ajustada'}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {fitMode === 'cover' ? (
+                      <>
+                        <polyline points="15 3 21 3 21 9" />
+                        <polyline points="9 21 3 21 3 15" />
+                        <line x1="21" y1="3" x2="14" y2="10" />
+                        <line x1="3" y1="21" x2="10" y2="14" />
+                      </>
+                    ) : (
+                      <>
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M3 9h18" />
+                        <path d="M9 21V9" />
+                      </>
+                    )}
+                  </svg>
+                  <span>{fitMode === 'cover' ? 'Ver completa' : 'Llenar'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="product-detail__image-btn"
+                  onClick={() => setIsLightboxOpen(true)}
+                  title="Abrir a pantalla completa"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <line x1="11" y1="8" x2="11" y2="14" />
+                    <line x1="8" y1="11" x2="14" y2="11" />
+                  </svg>
+                  <span>Zoom</span>
+                </button>
+              </div>
+
               <img
                 src={product.imagen_url}
                 alt={product.nombre}
-                className="product-detail__main-image"
+                className={`product-detail__main-image product-detail__main-image--${fitMode}`}
               />
+            </div>
+
+            {/* Barra de herramientas accesible debajo de la foto */}
+            <div className="product-detail__image-toolbar">
+              <button
+                type="button"
+                className={`product-detail__tool-btn ${fitMode === 'contain' ? 'active' : ''}`}
+                onClick={() => setFitMode(f => f === 'cover' ? 'contain' : 'cover')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                {fitMode === 'cover' ? 'Ver foto sin recorte' : 'Vista editorial'}
+              </button>
+
+              <button
+                type="button"
+                className="product-detail__tool-btn"
+                onClick={() => setIsLightboxOpen(true)}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+                Pantalla completa
+              </button>
             </div>
           </div>
 
@@ -184,6 +278,43 @@ export default function ProductDetail() {
             <ProductGrid products={filteredRelated} loading={loadingRelated} columns={4} />
           </div>
         </section>
+      )}
+
+      {/* Modal Lightbox para ver la imagen 100% completa sin recortes */}
+      {isLightboxOpen && (
+        <div
+          className="product-lightbox"
+          onClick={() => setIsLightboxOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vista ampliada de la prenda"
+        >
+          <button
+            type="button"
+            className="product-lightbox__close"
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label="Cerrar vista completa"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          <div className="product-lightbox__content" onClick={e => e.stopPropagation()}>
+            <img
+              src={product.imagen_url}
+              alt={product.nombre}
+              className="product-lightbox__img"
+            />
+            <div className="product-lightbox__caption">
+              <strong>{product.nombre}</strong>
+              {product.marca && ` • ${product.marca}`}
+              {product.talla && ` • Talla: ${product.talla}`}
+              {formattedPrice && ` • ${formattedPrice}`}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
