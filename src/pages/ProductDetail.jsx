@@ -79,8 +79,10 @@ export default function ProductDetail() {
 
   const productUrl = `${storeBase}/producto/${product.id}`
   const tallaInfo = product.talla ? ` (Talla: ${product.talla})` : ''
+  const barcodeOrId = product.codigo_barra || product.id
+  const codigoInfo = barcodeOrId ? `\n• Código: ${barcodeOrId}` : ''
   const whatsappMessage = encodeURIComponent(
-    `Hola S'TILOS GISSEL, deseo consultar disponibilidad de la prenda:\n• *${product.nombre}*${tallaInfo}\n• Ver prenda: ${productUrl}`
+    `Hola S'TILOS GISSEL, deseo consultar disponibilidad de la prenda:\n• *${product.nombre}*${tallaInfo}${codigoInfo}\n• Ver prenda: ${productUrl}`
   )
   const whatsappUrl = `https://api.whatsapp.com/send?phone=50497941476&text=${whatsappMessage}`
   const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '')

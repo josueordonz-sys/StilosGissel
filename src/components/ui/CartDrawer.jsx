@@ -166,6 +166,10 @@ export default function CartDrawer() {
         : rawImg ? `${origin}${rawImg}` : ''
 
       message += `\n${index + 1}. *${p.nombre}*\n`
+      const itemCode = p.codigo_barra || p.id
+      if (itemCode) {
+        message += `   • Código: ${itemCode}\n`
+      }
       if (p.marca && !p.nombre.toLowerCase().includes(p.marca.toLowerCase())) {
         message += `   • Marca: ${p.marca}\n`
       }
@@ -234,6 +238,7 @@ export default function CartDrawer() {
         nombre_cliente: 'Pedido por WhatsApp',
         telefono: `${phoneRegion} ${customerPhone.trim()}`,
         notas: [
+          (item.product.codigo_barra || item.product.id) && `Código: ${item.product.codigo_barra || item.product.id}`,
           item.product.talla && `Talla: ${item.product.talla}`,
           item.selectedColor?.name && `Color: ${item.selectedColor.name}`,
           `Cantidad: ${item.quantity}`,
