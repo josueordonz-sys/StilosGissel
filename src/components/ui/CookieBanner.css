@@ -1,0 +1,133 @@
+/* =====================================================
+   ESTILOS GISSEL — Cookie & Storage Banner
+   Estética: Liquid Glass (Frosted Glassmorphism Sutil)
+   Comportamiento: Flotante, no invasivo, permite navegar libremente
+   ===================================================== */
+
+.cookie-banner {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92vw, 620px);
+  z-index: 998; /* Justo debajo del drawer del carrito si se abre */
+  pointer-events: none; /* No bloquea clics fuera del banner */
+  animation: liquidGlassFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes liquidGlassFadeUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.cookie-banner__inner {
+  pointer-events: auto; /* El banner sí es interactivo */
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.15rem;
+  
+  /* Liquid Glass Effect */
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 9999px; /* Cápsula suave moderna */
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.08),
+    0 20px 40px -15px rgba(184, 154, 98, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  
+  color: var(--color-text-main, #161514);
+  transition: box-shadow var(--transition-fast, 180ms ease);
+}
+
+.cookie-banner__inner:hover {
+  box-shadow: 
+    0 12px 35px -8px rgba(0, 0, 0, 0.1),
+    0 24px 45px -12px rgba(184, 154, 98, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 1);
+}
+
+.cookie-banner__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(184, 154, 98, 0.15);
+  color: var(--color-gold-dark, #8f743c);
+}
+
+.cookie-banner__text {
+  flex: 1;
+  font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-size: 0.78rem;
+  line-height: 1.38;
+  color: #3f3e3b;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.cookie-banner__btn {
+  flex-shrink: 0;
+  background: var(--color-text-main, #161514);
+  color: #faf8f5;
+  border: none;
+  font-family: var(--font-body, inherit);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all var(--transition-fast, 180ms ease);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.cookie-banner__btn:hover {
+  background: var(--color-gold, #b89a62);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.cookie-banner__btn:active {
+  transform: translateY(0);
+}
+
+/* Responsivo para móviles */
+@media (max-width: 640px) {
+  .cookie-banner {
+    bottom: 1rem;
+    width: calc(100vw - 1.5rem);
+  }
+
+  .cookie-banner__inner {
+    border-radius: 16px;
+    padding: 0.75rem 0.95rem;
+    gap: 0.65rem;
+  }
+
+  .cookie-banner__icon {
+    display: none; /* Simplificar espacio en pantallas reducidas */
+  }
+
+  .cookie-banner__text {
+    font-size: 0.74rem;
+  }
+
+  .cookie-banner__btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.7rem;
+  }
+}
+

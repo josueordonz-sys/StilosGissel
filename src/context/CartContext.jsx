@@ -62,15 +62,25 @@ export function CartProvider({ children }) {
 
     const colorKey = selectedColor?.name || selectedColor?.hex || 'default'
     const cartItemId = `${product.id}-${colorKey}`
+    const maxStock = (product.stock !== undefined && product.stock !== null && !isNaN(product.stock))
+      ? Math.max(0, Number(product.stock))
+      : 999
+
+    if (maxStock <= 0) {
+      alert('Lo sentimos, este producto no tiene existencias disponibles.')
+      return
+    }
 
     setItems(prevItems => {
       const existingIndex = prevItems.findIndex(i => i.cartItemId === cartItemId)
 
       if (existingIndex > -1) {
+        const currentQty = prevItems[existingIndex].quantity
+        const capped = Math.min(currentQty + quantity, maxStock)
         const updated = [...prevItems]
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + quantity
+          quantity: capped
         }
         return updated
       }
@@ -81,7 +91,7 @@ export function CartProvider({ children }) {
           cartItemId,
           product,
           selectedColor,
-          quantity: Math.max(1, quantity)
+          quantity: Math.min(Math.max(1, quantity), maxStock)
         }
       ]
     })
@@ -107,11 +117,13 @@ export function CartProvider({ children }) {
     }
 
     setItems(prevItems =>
-      prevItems.map(item =>
-        item.cartItemId === cartItemId
-          ? { ...item, quantity: newQty }
-          : item
-      )
+      prevItems.map(item => {
+        if (item.cartItemId !== cartItemId) return item
+        const maxStock = (item.product?.stock !== undefined && item.product?.stock !== null && !isNaN(item.product?.stock))
+          ? Math.max(1, Number(item.product?.stock))
+          : 999
+        return { ...item, quantity: Math.min(newQty, maxStock) }
+      })
     )
   }
 

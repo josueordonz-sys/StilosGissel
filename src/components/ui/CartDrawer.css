@@ -332,6 +332,22 @@
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+.cart-item__qty-btn:disabled,
+.cart-item__qty-btn.is-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.cart-item__stock-limit {
+  display: block;
+  font-size: 0.67rem;
+  color: #b45309;
+  letter-spacing: 0.04em;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
 .cart-item__qty-value {
   padding: 0 0.5rem;
   font-size: 0.78rem;

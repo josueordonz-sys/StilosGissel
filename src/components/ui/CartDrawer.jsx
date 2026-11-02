@@ -465,6 +465,10 @@ export default function CartDrawer() {
                   item.selectedColor?.imagen_url ||
                   p.imagen_url ||
                   '/placeholder-product.svg'
+                const maxStock = (p.stock !== undefined && p.stock !== null && !isNaN(p.stock))
+                  ? Math.max(1, Number(p.stock))
+                  : 999
+                const atStockLimit = item.quantity >= maxStock
 
                 return (
                   <div key={item.cartItemId} className="cart-item">
@@ -529,13 +533,17 @@ export default function CartDrawer() {
                           <span className="cart-item__qty-value">{item.quantity}</span>
                           <button
                             type="button"
-                            className="cart-item__qty-btn"
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                            className={`cart-item__qty-btn${atStockLimit ? ' is-disabled' : ''}`}
+                            onClick={() => !atStockLimit && updateQuantity(item.cartItemId, item.quantity + 1)}
                             aria-label="Aumentar cantidad"
+                            disabled={atStockLimit}
                           >
                             +
                           </button>
                         </div>
+                        {atStockLimit && (
+                          <span className="cart-item__stock-limit">Stock máximo alcanzado</span>
+                        )}
 
                         <button
                           type="button"

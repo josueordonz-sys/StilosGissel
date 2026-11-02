@@ -8,6 +8,7 @@ import Category from './pages/Category'
 import ProductDetail from './pages/ProductDetail'
 import SearchResults from './pages/SearchResults'
 import NotFound from './pages/NotFound'
+import CookieBanner from './components/ui/CookieBanner'
 
 // Admin pages
 import AdminDashboard   from './pages/admin/AdminDashboard'
@@ -95,6 +96,7 @@ export default function App() {
           </Route>
 
         </Routes>
+        <CookieBanner />
       </BrowserRouter>
     </CartProvider>
   )
