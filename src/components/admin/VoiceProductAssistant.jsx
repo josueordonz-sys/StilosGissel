@@ -136,31 +136,32 @@ export default function VoiceProductAssistant({
   const utteranceRef = useRef(null)
   const isCancelledRef = useRef(false)
   const speakTimeoutRef = useRef(null)
+  // Intención del usuario: true = quiere tener el mic encendido
+  const shouldListenRef = useRef(false)
+  const restartTimerRef = useRef(null)
 
   const pasoActual = PASOS[pasoIndex]
 
-  // Iniciar reconocimiento de voz de manera robusta
-  const startListening = useCallback(() => {
+  // Función interna que arranca UNA instancia de SpeechRecognition
+  const _createAndStart = useCallback(() => {
     if (typeof window === 'undefined') return
-
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
-
     if (!SpeechRec) {
-      setErrorMsg('Tu navegador no soporta SpeechRecognition nativo. Usa Google Chrome, Edge o Safari para dictar con voz.')
+      setErrorMsg('Tu navegador no soporta reconocimiento de voz. Usa Google Chrome o Edge.')
       return
     }
 
     try {
+      // Abortar la instancia anterior antes de crear una nueva
       if (recognitionRef.current) {
-        try {
-          recognitionRef.current.abort()
-        } catch (_) {}
+        try { recognitionRef.current.onend = null } catch (_) {}
+        try { recognitionRef.current.abort() } catch (_) {}
+        recognitionRef.current = null
       }
 
       const rec = new SpeechRec()
-      // Usar 'es-419' (Español Latinoamericano universal) con fallback 'es-ES'
       rec.lang = 'es-419'
-      rec.continuous = true
+      rec.continuous = false   // false es más estable; reiniciamos en onend
       rec.interimResults = true
       rec.maxAlternatives = 1
 
@@ -172,7 +173,6 @@ export default function VoiceProductAssistant({
       rec.onresult = (event) => {
         let interimText = ''
         let finalText = ''
-
         for (let i = 0; i < event.results.length; i++) {
           const item = event.results[i]
           if (item.isFinal) {
@@ -181,27 +181,29 @@ export default function VoiceProductAssistant({
             interimText += item[0].transcript
           }
         }
-
         const heard = (finalText || interimText).trim()
-        if (heard) {
-          setTextInput(heard)
-        }
+        if (heard) setTextInput(heard)
       }
 
       rec.onerror = (e) => {
         if (e.error === 'not-allowed') {
-          setErrorMsg('El micrófono está bloqueado en el navegador. Haz clic en el candado en la barra de direcciones y permite el micrófono.')
+          shouldListenRef.current = false
+          setErrorMsg('Micrófono bloqueado. Permite el acceso en el candado de la barra de direcciones y recarga.')
           setIsListening(false)
-        } else if (e.error === 'no-speech') {
-          // Silencio temporal, no es error fatal
-        } else if (e.error !== 'aborted') {
-          console.warn('Aviso de reconocimiento:', e.error)
         }
+        // 'no-speech', 'aborted' y otros: los ignoramos; onend reiniciará si toca
       }
 
       rec.onend = () => {
-        // Si no fue cancelado y el modal sigue abierto, intentar reconectar suavemente
-        if (!isCancelledRef.current) {
+        // Chrome siempre llama onend aunque continuous=false — reiniciamos si el usuario quiere seguir
+        if (shouldListenRef.current && !isCancelledRef.current) {
+          // Pequeño delay para evitar el loop de "start → end inmediato"
+          restartTimerRef.current = setTimeout(() => {
+            if (shouldListenRef.current && !isCancelledRef.current) {
+              _createAndStart()
+            }
+          }, 150)
+        } else {
           setIsListening(false)
         }
       }
@@ -209,17 +211,31 @@ export default function VoiceProductAssistant({
       recognitionRef.current = rec
       rec.start()
     } catch (err) {
-      setIsListening(false)
       console.warn('Error al iniciar micrófono:', err)
+      // Reintentar en 400ms si el usuario aún quiere escuchar
+      if (shouldListenRef.current && !isCancelledRef.current) {
+        restartTimerRef.current = setTimeout(_createAndStart, 400)
+      } else {
+        setIsListening(false)
+      }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Detener el micrófono
+  // Iniciar reconocimiento (pública): marca la intención y arranca
+  const startListening = useCallback(() => {
+    shouldListenRef.current = true
+    _createAndStart()
+  }, [_createAndStart])
+
+  // Detener el micrófono (pública): cancela la intención y detiene todo
   const stopListening = useCallback(() => {
+    shouldListenRef.current = false
+    if (restartTimerRef.current) clearTimeout(restartTimerRef.current)
     if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop()
-      } catch (_) {}
+      try { recognitionRef.current.onend = null } catch (_) {}
+      try { recognitionRef.current.abort() } catch (_) {}
+      recognitionRef.current = null
     }
     setIsListening(false)
   }, [])
@@ -341,11 +357,14 @@ export default function VoiceProductAssistant({
 
     return () => {
       isCancelledRef.current = true
+      shouldListenRef.current = false
+      if (restartTimerRef.current) clearTimeout(restartTimerRef.current)
       if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current)
       if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
         try { window.speechSynthesis.cancel() } catch (_) {}
       }
       if (recognitionRef.current) {
+        try { recognitionRef.current.onend = null } catch (_) {}
         try { recognitionRef.current.abort() } catch (_) {}
       }
     }
@@ -353,6 +372,8 @@ export default function VoiceProductAssistant({
 
   const handleClose = () => {
     isCancelledRef.current = true
+    shouldListenRef.current = false
+    if (restartTimerRef.current) clearTimeout(restartTimerRef.current)
     if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current)
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try { window.speechSynthesis.cancel() } catch (_) {}
