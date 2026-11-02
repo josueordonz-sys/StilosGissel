@@ -1,6 +1,7 @@
-/* Hook de autenticación verificado exclusivamente por Supabase Auth */
+/* Hook de autenticación verificado exclusivamente por Supabase Auth con auditoría de seguridad */
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { getClientFingerprint, fetchClientPublicIp } from '../lib/security'
 
 export function useAdminAuth() {
   const [session, setSession] = useState(null)
@@ -10,6 +11,33 @@ export function useAdminAuth() {
   const [passwordInput, setPasswordInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' })
+
+  // Registrar auditoría de acceso (IP, sistema operativo, si es bot/Linux/VM)
+  const logAccessAttempt = useCallback(async (email, exito, detalleError = '') => {
+    try {
+      const fingerprint = getClientFingerprint()
+      const ip = await fetchClientPublicIp()
+
+      const auditPayload = {
+        email,
+        exito,
+        ip_address: ip,
+        sistema_operativo: fingerprint.os,
+        es_linux: fingerprint.isLinux,
+        es_automatizado: fingerprint.isAutomated,
+        user_agent: fingerprint.userAgent,
+        resolucion: fingerprint.screenResolution,
+        zona_horaria: fingerprint.timezone,
+        detalle: detalleError || (exito ? 'Inicio de sesión autorizado' : 'Intento fallido'),
+        created_at: new Date().toISOString()
+      }
+
+      // Intentar persistir en Supabase si la tabla existe (silencioso si no)
+      await supabase.from('admin_audit_logs').insert(auditPayload)
+    } catch (_) {
+      // No bloquear la experiencia si la tabla de auditoría aún no se ha creado
+    }
+  }, [])
 
   // Escuchar sesión activa de Supabase
   useEffect(() => {
@@ -78,13 +106,16 @@ export function useAdminAuth() {
           mensajeError = 'Demasiados intentos. Espera unos momentos antes de reintentar.'
         }
         setStatusMsg({ text: mensajeError, type: 'error' })
+        logAccessAttempt(cleanEmail, false, mensajeError)
       } else if (data?.user) {
         setSession(data.session)
         setUser(data.user)
         setStatusMsg({ text: 'Acceso autorizado. Cargando...', type: 'success' })
+        logAccessAttempt(cleanEmail, true, 'Acceso exitoso')
       }
     } catch (err) {
       setStatusMsg({ text: 'Error al conectar con Supabase: ' + err.message, type: 'error' })
+      logAccessAttempt(cleanEmail, false, err.message)
     } finally {
       setSubmitting(false)
     }

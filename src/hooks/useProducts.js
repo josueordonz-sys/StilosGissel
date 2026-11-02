@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { sanitizeSearchQuery } from '../lib/security'
 
 /**
  * Hook modular para obtener productos reales exclusivamente desde Supabase.
- * Soporta filtros dinámicos por categoría, género, destacados y búsqueda por texto.
+ * Soporta filtros dinámicos por categoría, género, destacados y búsqueda por texto protegida contra inyección.
  */
 export function useProducts(filters = {}) {
   const { category, gender, search, featured, limit, minPrice, maxPrice, marca, talla } = filters
@@ -19,16 +20,20 @@ export function useProducts(filters = {}) {
       let query = supabase.from('productos').select('*').order('created_at', { ascending: false })
 
       if (category && category !== 'todos') {
-        query = query.ilike('categoria', category)
+        const cleanCat = sanitizeSearchQuery(category, 50)
+        if (cleanCat) query = query.ilike('categoria', cleanCat)
       }
       if (gender && gender !== 'todos') {
-        query = query.ilike('genero', gender)
+        const cleanGender = sanitizeSearchQuery(gender, 30)
+        if (cleanGender) query = query.ilike('genero', cleanGender)
       }
       if (marca && marca !== 'todas') {
-        query = query.ilike('marca', marca)
+        const cleanMarca = sanitizeSearchQuery(marca, 50)
+        if (cleanMarca) query = query.ilike('marca', cleanMarca)
       }
       if (talla && talla !== 'todas') {
-        query = query.ilike('talla', talla)
+        const cleanTalla = sanitizeSearchQuery(talla, 20)
+        if (cleanTalla) query = query.ilike('talla', cleanTalla)
       }
       if (featured) {
         query = query.eq('destacado', true)
@@ -42,8 +47,10 @@ export function useProducts(filters = {}) {
         if (!isNaN(maxVal)) query = query.lte('precio', maxVal)
       }
       if (search && search.trim()) {
-        const s = search.trim()
-        query = query.or(`nombre.ilike.%${s}%,descripcion.ilike.%${s}%,marca.ilike.%${s}%`)
+        const s = sanitizeSearchQuery(search.trim(), 80)
+        if (s) {
+          query = query.or(`nombre.ilike.%${s}%,descripcion.ilike.%${s}%,marca.ilike.%${s}%`)
+        }
       }
       if (limit) {
         query = query.limit(limit)
