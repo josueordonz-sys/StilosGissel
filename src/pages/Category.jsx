@@ -14,10 +14,13 @@ export default function Category() {
   const [selectedTalla, setSelectedTalla] = useState('')
   const [priceFilter, setPriceFilter] = useState('all')
 
-  // Reiniciar filtros al cambiar de categoría o género
+  // Reiniciar filtros y llevar la vista a la parte superior al cambiar de categoría o género
   useEffect(() => {
     setSelectedBrand('')
     setSelectedTalla('')
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    if (document.documentElement) document.documentElement.scrollTop = 0
+    if (document.body) document.body.scrollTop = 0
   }, [activeSlug, gender])
 
   const isClothing = activeSlug === 'camisas' || activeSlug === 'ropa' || activeSlug === 'hoodies'

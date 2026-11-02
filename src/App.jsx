@@ -9,6 +9,7 @@ import ProductDetail from './pages/ProductDetail'
 import SearchResults from './pages/SearchResults'
 import NotFound from './pages/NotFound'
 import CookieBanner from './components/ui/CookieBanner'
+import ScrollToTop from './components/layout/ScrollToTop'
 
 // Admin pages
 import AdminDashboard   from './pages/admin/AdminDashboard'
@@ -42,6 +43,7 @@ export default function App() {
   if (isSubdomainAdmin) {
     return (
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<AdminLayout />}>
             <Route index             element={<AdminDashboard />} />
@@ -61,6 +63,7 @@ export default function App() {
   return (
     <CartProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
 
           {/* ── ADMIN en dominio público: protegido con guard que retorna 404 ── */}

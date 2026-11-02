@@ -14,6 +14,13 @@ export default function ProductDetail() {
   const [fitMode, setFitMode] = useState('cover')
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
 
+  // Desplazar al inicio al abrir o cambiar de producto
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    if (document.documentElement) document.documentElement.scrollTop = 0
+    if (document.body) document.body.scrollTop = 0
+  }, [id])
+
   // Cerrar lightbox con tecla Escape y bloquear scroll de fondo
   useEffect(() => {
     if (!isLightboxOpen) return

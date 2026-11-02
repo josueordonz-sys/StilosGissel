@@ -57,6 +57,7 @@ export default function Navbar() {
     setMenuOpen(false)
     setSelectedCategory(null)
     setActiveGender('todas')
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }
 
   const handleSearch = (e) => {
