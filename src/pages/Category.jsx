@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
@@ -11,7 +11,14 @@ export default function Category() {
   const navigate = useNavigate()
   const [sortBy, setSortBy] = useState('featured')
   const [selectedBrand, setSelectedBrand] = useState('')
+  const [selectedTalla, setSelectedTalla] = useState('')
   const [priceFilter, setPriceFilter] = useState('all')
+
+  // Reiniciar filtros al cambiar de categoría o género
+  useEffect(() => {
+    setSelectedBrand('')
+    setSelectedTalla('')
+  }, [activeSlug, gender])
 
   const isClothing = activeSlug === 'camisas' || activeSlug === 'ropa' || activeSlug === 'hoodies'
   const [columns, setColumns] = useState(isClothing ? 2 : 2)
@@ -36,12 +43,21 @@ export default function Category() {
     return [...new Set(products.map(p => p.marca?.trim()).filter(Boolean))].sort()
   }, [products])
 
-  // Filtrado por marca, margen de precio y ordenamiento
+  // Tallas únicas disponibles dentro de esta categoría
+  const availableTallas = useMemo(() => {
+    return [...new Set(products.map(p => p.talla?.trim()).filter(Boolean))].sort()
+  }, [products])
+
+  // Filtrado por marca, talla, margen de precio y ordenamiento
   const sortedProducts = useMemo(() => {
     let list = [...products]
 
     if (selectedBrand) {
       list = list.filter(p => p.marca?.toLowerCase() === selectedBrand.toLowerCase())
+    }
+
+    if (selectedTalla) {
+      list = list.filter(p => p.talla?.toLowerCase() === selectedTalla.toLowerCase())
     }
 
     if (priceFilter === 'under500') {
@@ -64,7 +80,7 @@ export default function Category() {
       return list.sort((a, b) => a.nombre.localeCompare(b.nombre))
     }
     return list
-  }, [products, sortBy, selectedBrand, priceFilter])
+  }, [products, sortBy, selectedBrand, selectedTalla, priceFilter])
 
   const handleGenderChange = (newGender) => {
     if (!newGender) {
@@ -158,6 +174,25 @@ export default function Category() {
                   <option value="">Todas las Marcas</option>
                   {availableBrands.map(b => (
                     <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Filtro por Talla */}
+            {availableTallas.length > 0 && (
+              <div className="sort-select-wrap">
+                <label htmlFor="talla-select" className="overline visually-hidden">Talla</label>
+                <select
+                  id="talla-select"
+                  value={selectedTalla}
+                  onChange={e => setSelectedTalla(e.target.value)}
+                  className="sort-select"
+                  aria-label="Filtrar por talla"
+                >
+                  <option value="">Todas las Tallas</option>
+                  {availableTallas.map(t => (
+                    <option key={t} value={t}>Talla {t}</option>
                   ))}
                 </select>
               </div>
