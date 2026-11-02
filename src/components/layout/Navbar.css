@@ -64,6 +64,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
   height: 100%;
   width: 100%;
   box-sizing: border-box;
@@ -75,6 +76,9 @@
   align-items: center;
   gap: var(--space-sm);
   text-decoration: none;
+  flex-shrink: 0;
+  min-width: max-content;
+  z-index: 2;
 }
 
 .navbar__logo img {
@@ -106,7 +110,10 @@
 .navbar__nav {
   display: flex;
   align-items: center;
-  gap: var(--space-xl);
+  gap: clamp(0.6rem, 1.2vw, 1.8rem);
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
 }
 
 .navbar__nav-item {
@@ -115,14 +122,15 @@
 
 .navbar__link {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: clamp(0.58rem, 0.6vw, 0.7rem);
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-text-body);
   padding: var(--space-sm) 0;
   transition: color var(--transition-fast);
   display: block;
+  white-space: nowrap;
 }
 
 .navbar__link::after {
@@ -186,12 +194,47 @@
   font-weight: 600;
 }
 
+/* --- Dropdown Más Categorías --- */
+.navbar__link--more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.navbar__more-chevron {
+  transition: transform var(--transition-fast);
+}
+
+.navbar__nav-item--more:hover .navbar__more-chevron {
+  transform: rotate(180deg);
+}
+
+.navbar__dropdown--more {
+  min-width: 175px;
+  max-height: 60vh;
+  overflow-y: auto;
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) 0;
+}
+
+.navbar__dropdown--more::-webkit-scrollbar {
+  width: 4px;
+}
+
+.navbar__dropdown--more::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
 /* --- Acciones --- */
 .navbar__actions {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   flex-shrink: 0;
+  z-index: 2;
 }
 
 .navbar__action-btn {
@@ -626,7 +669,7 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .navbar__nav {
     display: none;
   }

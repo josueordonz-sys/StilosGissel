@@ -7,3 +7,4 @@ Disallow: /admin-restringido
 Disallow: /storage-img/
 
 Sitemap: https://www.estilosgissel.com/sitemap.xml
+

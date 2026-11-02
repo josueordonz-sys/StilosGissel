@@ -116,6 +116,17 @@ export default function Navbar() {
     { id: 'hombre', label: 'Hombre' },
   ]
 
+  // Separación inteligente de categorías para navbar desktop:
+  // Si hay más de 7 categorías, mostramos las primeras 6 y agrupamos las demás bajo un menú desplegable "MÁS"
+  const MAX_VISIBLE = 6
+  const hasMore = displayCategories.length > 7
+  const visibleCategories = useMemo(() => {
+    return hasMore ? displayCategories.slice(0, MAX_VISIBLE) : displayCategories
+  }, [displayCategories, hasMore])
+  const moreCategories = useMemo(() => {
+    return hasMore ? displayCategories.slice(MAX_VISIBLE) : []
+  }, [displayCategories, hasMore])
+
   return (
     <div className={`site-header ${scrolled ? 'site-header--scrolled' : ''}`}>
 
@@ -134,7 +145,7 @@ export default function Navbar() {
 
           {/* Navegación desktop (sin 'Marcas') */}
           <nav className="navbar__nav" aria-label="Categorias principales">
-            {displayCategories.map(cat => (
+            {visibleCategories.map(cat => (
               <div key={cat.slug} className="navbar__nav-item">
                 <NavLink
                   to={`/categoria/${cat.slug}`}
@@ -152,6 +163,28 @@ export default function Navbar() {
                 )}
               </div>
             ))}
+
+            {hasMore && (
+              <div className="navbar__nav-item navbar__nav-item--more">
+                <span className="navbar__link navbar__link--more" role="button" tabIndex={0}>
+                  <span>Más</span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="navbar__more-chevron">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+                <div className="navbar__dropdown navbar__dropdown--more">
+                  {moreCategories.map(cat => (
+                    <NavLink
+                      key={cat.slug}
+                      to={`/categoria/${cat.slug}`}
+                      className={({ isActive }) => `navbar__dropdown-link ${isActive ? 'active' : ''}`}
+                    >
+                      {cat.nombre}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            )}
           </nav>
 
           <div className="navbar__actions">
