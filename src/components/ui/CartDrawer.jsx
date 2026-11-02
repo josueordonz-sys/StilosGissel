@@ -84,6 +84,9 @@ export default function CartDrawer() {
   const [customerPhone, setCustomerPhone] = useState('')
   const [savingOrder, setSavingOrder] = useState(false)
   const [orderError, setOrderError] = useState('')
+  const [receiptUrl, setReceiptUrl] = useState('')
+  const [receiptUploading, setReceiptUploading] = useState(false)
+  const [receiptError, setReceiptError] = useState('')
   const drawerRef = useRef(null)
 
   // Cerrar con Escape y bloquear scroll del body
@@ -126,6 +129,75 @@ export default function CartDrawer() {
       setCopiedBankId(bank.id)
       setTimeout(() => setCopiedBankId(null), 2000)
     }
+  }
+
+  // Manejo de subida del comprobante de transferencia a Supabase Storage
+  const handleReceiptUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setReceiptError('El archivo debe ser una imagen (foto o captura).')
+      return
+    }
+
+    setReceiptError('')
+    setReceiptUploading(true)
+
+    try {
+      const fileExt = file.name.split('.').pop() || 'jpg'
+      const cleanFileName = file.name
+        .substring(0, file.name.lastIndexOf('.') || file.name.length)
+        .replace(/[^a-zA-Z0-9]/g, '_')
+      const filePath = `uploads/comprobantes/${Date.now()}_${cleanFileName}.${fileExt}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('productos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('productos')
+          .getPublicUrl(filePath)
+
+        if (urlData?.publicUrl) {
+          const origin = (typeof window !== 'undefined' && window.location.origin)
+            ? window.location.origin
+            : 'https://estilosgissel.com'
+          const cleanUrl = urlData.publicUrl.replace(
+            /^https?:\/\/[^/]+\/storage\/v1\/object\/public\/productos/,
+            `${origin}/storage-img`
+          )
+          setReceiptUrl(cleanUrl)
+          setReceiptUploading(false)
+          return
+        }
+      }
+
+      // Fallback a Base64 si el storage no respondiera
+      const reader = new FileReader()
+      reader.onload = (evt) => {
+        setReceiptUrl(evt.target.result)
+        setReceiptUploading(false)
+      }
+      reader.onerror = () => {
+        setReceiptError('No se pudo procesar la imagen seleccionada.')
+        setReceiptUploading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (err) {
+      console.warn('Error al subir comprobante:', err)
+      setReceiptError('Error al subir la imagen. Inténtalo de nuevo.')
+      setReceiptUploading(false)
+    }
+  }
+
+  const handleRemoveReceipt = () => {
+    setReceiptUrl('')
+    setReceiptError('')
   }
 
   // Genera URL de WhatsApp estructurado de forma limpia y elegante con enlaces de la tienda
@@ -192,6 +264,9 @@ export default function CartDrawer() {
     message += `━━━━━━━━━━━━━━━━━━━━━\n\n`
 
     if (isTransfer) {
+      if (receiptUrl) {
+        message += `*Comprobante de pago:*\n${receiptUrl}\n\n`
+      }
       message += `Hola S'TILOS GISSEL, ya realicé la transferencia bancaria para este pedido. Adjunto aquí la fotografía de mi comprobante de pago.`
     } else {
       message += `Hola S'TILOS GISSEL, deseo consultar disponibilidad y coordinar el envío de mi pedido.`
@@ -207,8 +282,34 @@ export default function CartDrawer() {
       setOrderError('Ingresa tu número de teléfono para continuar.')
       return
     }
+    if (isTransfer && !receiptUrl) {
+      setOrderError('Por favor sube la foto o captura de tu comprobante de transferencia antes de confirmar.')
+      return
+    }
     setOrderError('')
     setSavingOrder(true)
+
+    // Si es transferencia bancaria confirmada por el cliente con recibo:
+    // Retiramos las prendas inmediatamente de la tienda pública (publico = false)
+    if (isTransfer) {
+      try {
+        for (const item of items) {
+          if (item.product?.id) {
+            const currentStock = Number(item.product.stock) || 1
+            const newStock = Math.max(0, currentStock - item.quantity)
+            await supabase
+              .from('productos')
+              .update({
+                publico: false,
+                stock: newStock
+              })
+              .eq('id', item.product.id)
+          }
+        }
+      } catch (errUp) {
+        console.warn('Aviso: no se pudo actualizar visibilidad inmediatamente:', errUp)
+      }
+    }
 
     const whatsappUrl = generateWhatsAppUrl(isTransfer)
 
@@ -235,16 +336,17 @@ export default function CartDrawer() {
         producto_id: item.product.id,
         nombre_producto: item.product.nombre,
         precio: Number(item.product.precio) || 0,
-        nombre_cliente: 'Pedido por WhatsApp',
+        nombre_cliente: isTransfer ? 'Pedido por Transferencia' : 'Pedido por WhatsApp',
         telefono: `${phoneRegion} ${customerPhone.trim()}`,
         notas: [
+          receiptUrl && `Comprobante: ${receiptUrl}`,
           (item.product.codigo_barra || item.product.id) && `Código: ${item.product.codigo_barra || item.product.id}`,
           item.product.talla && `Talla: ${item.product.talla}`,
           item.selectedColor?.name && `Color: ${item.selectedColor.name}`,
           `Cantidad: ${item.quantity}`,
-          `Método de pago: ${isTransfer ? 'Transferencia bancaria' : 'WhatsApp directo'}`
+          `Método de pago: ${isTransfer ? 'Transferencia bancaria (Comprobante adjunto)' : 'WhatsApp directo'}`
         ].filter(Boolean).join(' | '),
-        estado: 'pendiente'
+        estado: isTransfer ? 'confirmado' : 'pendiente'
       }))
 
       const savePromise = supabase.from('pedidos').insert(rows)
@@ -263,6 +365,8 @@ export default function CartDrawer() {
       setTimeout(() => {
         clearCart()
         setCustomerPhone('')
+        setReceiptUrl('')
+        setReceiptError('')
         setPhoneRegion('+504')
         setPaymentMethod('whatsapp')
         setSavingOrder(false)
@@ -277,6 +381,8 @@ export default function CartDrawer() {
       }
       clearCart()
       setCustomerPhone('')
+      setReceiptUrl('')
+      setReceiptError('')
       setPhoneRegion('+504')
       setPaymentMethod('whatsapp')
       setSavingOrder(false)
@@ -549,7 +655,68 @@ export default function CartDrawer() {
                       <line x1="12" y1="8" x2="12" y2="12"/>
                       <line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>
-                    <span>¡No olvides enviar tu comprobante!</span>
+                    <span>¡Sube tu comprobante para apartar tus prendas!</span>
+                  </div>
+
+                  {/* Subir Comprobante de Transferencia */}
+                  <div className="cart-drawer__receipt-upload-box">
+                    <div className="cart-drawer__receipt-header">
+                      <span className="cart-drawer__receipt-title">Comprobante de Transferencia</span>
+                      <span className="cart-drawer__receipt-badge">Requerido</span>
+                    </div>
+                    <p className="cart-drawer__receipt-desc">
+                      Adjunta la foto o captura de tu transferencia bancaria para confirmar y reservar tus prendas inmediatamente:
+                    </p>
+
+                    {receiptUrl ? (
+                      <div className="cart-drawer__receipt-preview">
+                        <img src={receiptUrl} alt="Comprobante" className="cart-drawer__receipt-img" />
+                        <div className="cart-drawer__receipt-info">
+                          <span className="cart-drawer__receipt-success">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Comprobante adjuntado con éxito
+                          </span>
+                          <button
+                            type="button"
+                            className="cart-drawer__receipt-remove-btn"
+                            onClick={handleRemoveReceipt}
+                          >
+                            Quitar o cambiar foto
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className={`cart-drawer__receipt-dropzone ${receiptUploading ? 'is-uploading' : ''}`}>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleReceiptUpload}
+                          disabled={receiptUploading}
+                          style={{ display: 'none' }}
+                        />
+                        <div className="cart-drawer__receipt-dropzone-inner">
+                          {receiptUploading ? (
+                            <>
+                              <div className="cart-drawer__spinner" />
+                              <span className="cart-drawer__receipt-upload-text">Subiendo recibo a la nube...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="8" x2="12" y2="15" />
+                              </svg>
+                              <span className="cart-drawer__receipt-upload-text">Subir recibo de transferencia</span>
+                              <span className="cart-drawer__receipt-upload-hint">Toca aquí para seleccionar foto o captura de pantalla</span>
+                            </>
+                          )}
+                        </div>
+                      </label>
+                    )}
+                    {receiptError && <p className="cart-drawer__receipt-error">{receiptError}</p>}
                   </div>
                 </div>
               )}

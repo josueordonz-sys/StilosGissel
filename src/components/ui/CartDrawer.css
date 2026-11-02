@@ -571,6 +571,152 @@
   color: #92400e;
 }
 
+/* Receipt Upload Box */
+.cart-drawer__receipt-upload-box {
+  margin-top: 1rem;
+  padding: 0.95rem;
+  background: #faf8f5;
+  border: 1px dashed rgba(201, 168, 76, 0.5);
+  border-radius: 8px;
+}
+
+.cart-drawer__receipt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+}
+
+.cart-drawer__receipt-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+}
+
+.cart-drawer__receipt-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--color-gold-dark, #7a5f30);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.cart-drawer__receipt-desc {
+  font-size: 0.74rem;
+  color: var(--color-text-muted, #78716c);
+  margin: 0 0 0.75rem 0;
+  line-height: 1.35;
+}
+
+.cart-drawer__receipt-dropzone {
+  display: block;
+  border: 1.5px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 1rem 0.85rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cart-drawer__receipt-dropzone:hover {
+  border-color: var(--color-gold, #c9a84c);
+  background: #fffdf9;
+}
+
+.cart-drawer__receipt-dropzone.is-uploading {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.cart-drawer__receipt-dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-body, #44403c);
+}
+
+.cart-drawer__receipt-upload-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-main, #161514);
+}
+
+.cart-drawer__receipt-upload-hint {
+  font-size: 0.68rem;
+  color: var(--color-text-muted, #78716c);
+}
+
+.cart-drawer__receipt-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 0.65rem;
+}
+
+.cart-drawer__receipt-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.cart-drawer__receipt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-drawer__receipt-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #15803d;
+}
+
+.cart-drawer__receipt-remove-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  color: #b91c1c;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+}
+
+.cart-drawer__receipt-error {
+  font-size: 0.75rem;
+  color: #b91c1c;
+  margin: 0.4rem 0 0 0;
+}
+
+.cart-drawer__spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(201, 168, 76, 0.3);
+  border-top-color: var(--color-gold, #c9a84c);
+  border-radius: 50%;
+  animation: spinReceipt 0.8s linear infinite;
+}
+
+@keyframes spinReceipt {
+  to { transform: rotate(360deg); }
+}
+
 /* ─────────────────────────────────────────────────────
    FOOTER & SUBTOTAL
    ───────────────────────────────────────────────────── */

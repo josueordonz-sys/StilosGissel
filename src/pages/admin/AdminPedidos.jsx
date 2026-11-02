@@ -41,14 +41,73 @@ export default function AdminPedidos() {
     if (auth.isAuthorized) loadPedidos()
   }, [auth.isAuthorized, loadPedidos])
 
-  const updateEstado = async (id, estado) => {
+  const updateEstado = async (id, estado, pedido) => {
     try {
       const { error } = await supabase.from('pedidos').update({ estado }).eq('id', id)
       if (error) throw error
-      setStatusMsg({ text: `Pedido actualizado a "${estado}".`, type: 'success' })
+
+      if (estado === 'confirmado' && pedido?.producto_id) {
+        const { data: prodData } = await supabase
+          .from('productos')
+          .select('stock')
+          .eq('id', pedido.producto_id)
+          .maybeSingle()
+
+        const currentStock = Number(prodData?.stock) || 1
+        await supabase
+          .from('productos')
+          .update({
+            publico: false,
+            stock: Math.max(0, currentStock - 1)
+          })
+          .eq('id', pedido.producto_id)
+
+        setStatusMsg({ text: `Pedido confirmado. "${pedido.nombre_producto}" se retiró de la tienda pública.`, type: 'success' })
+      } else {
+        setStatusMsg({ text: `Pedido actualizado a "${estado}".`, type: 'success' })
+      }
       loadPedidos()
     } catch (err) {
       setStatusMsg({ text: `Error: ${err.message}`, type: 'error' })
+    }
+  }
+
+  const aceptarPedido = async (pedido) => {
+    if (!window.confirm(`¿Aceptar el pedido de "${pedido.nombre_producto}"? El artículo se retirará automáticamente del catálogo público.`)) return
+    try {
+      setLoading(true)
+      const { error: pedError } = await supabase
+        .from('pedidos')
+        .update({ estado: 'confirmado' })
+        .eq('id', pedido.id)
+      if (pedError) throw pedError
+
+      if (pedido.producto_id) {
+        const { data: prodData } = await supabase
+          .from('productos')
+          .select('stock')
+          .eq('id', pedido.producto_id)
+          .maybeSingle()
+
+        const currentStock = Number(prodData?.stock) || 1
+        await supabase
+          .from('productos')
+          .update({
+            publico: false,
+            stock: Math.max(0, currentStock - 1)
+          })
+          .eq('id', pedido.producto_id)
+      }
+
+      setStatusMsg({
+        text: `Pedido aceptado. "${pedido.nombre_producto}" ha sido retirado de la tienda pública.`,
+        type: 'success'
+      })
+      await loadPedidos()
+    } catch (err) {
+      setStatusMsg({ text: `Error: ${err.message}`, type: 'error' })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -176,7 +235,30 @@ export default function AdminPedidos() {
                     <td>{p.nombre_cliente}</td>
                     <td>{p.telefono || '—'}</td>
                     <td style={{ maxWidth: '140px', fontSize: '0.72rem' }}>{p.direccion || '—'}</td>
-                    <td style={{ maxWidth: '120px', fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>{p.notas || '—'}</td>
+                    <td style={{ maxWidth: '160px', fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
+                      <div>{p.notas || '—'}</div>
+                      {(() => {
+                        const match = p.notas?.match(/https?:\/\/[^\s|]+/i)
+                        if (match) {
+                          return (
+                            <a
+                              href={match[0]}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="a-badge a-badge--gold"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', textDecoration: 'none', marginTop: '6px' }}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                              </svg>
+                              Ver Comprobante
+                            </a>
+                          )
+                        }
+                        return null
+                      })()}
+                    </td>
                     <td>
                       <select
                         id={`pedido-estado-${p.id}`}
@@ -185,21 +267,39 @@ export default function AdminPedidos() {
                         className="a-input a-select"
                         style={{ width: '130px', padding: '0.3rem 0.6rem', fontSize: '0.7rem' }}
                         value={p.estado}
-                        onChange={e => updateEstado(p.id, e.target.value)}
+                        onChange={e => updateEstado(p.id, e.target.value, p)}
                       >
                         {ESTADOS.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </td>
                     <td style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{fmtDate(p.created_at)}</td>
                     <td>
-                      {p.estado === 'pendiente' && p.telefono && (
-                        <button type="button" className="a-btn a-btn-outline" style={{ marginRight: '0.4rem' }} onClick={() => solicitarConfirmacion(p)}>
-                          Solicitar confirmación
+                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        {p.estado === 'pendiente' && (
+                          <button
+                            type="button"
+                            className="a-btn a-btn-sm"
+                            style={{
+                              backgroundColor: '#15803d',
+                              color: '#ffffff',
+                              border: '1px solid #15803d',
+                              fontWeight: 600
+                            }}
+                            onClick={() => aceptarPedido(p)}
+                            title="Aceptar pedido y retirar el artículo de la tienda pública"
+                          >
+                            ✓ Aceptar Pedido
+                          </button>
+                        )}
+                        {p.estado === 'pendiente' && p.telefono && (
+                          <button type="button" className="a-btn a-btn-outline a-btn-sm" onClick={() => solicitarConfirmacion(p)}>
+                            Solicitar confirmación
+                          </button>
+                        )}
+                        <button type="button" className="a-btn a-btn-danger a-btn-sm" onClick={() => deletePedido(p.id)}>
+                          Eliminar
                         </button>
-                      )}
-                      <button type="button" className="a-btn a-btn-danger" onClick={() => deletePedido(p.id)}>
-                        Eliminar
-                      </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
