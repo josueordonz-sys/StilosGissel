@@ -19,33 +19,36 @@ import AdminRoles       from './pages/admin/AdminRoles'
 import AdminRestricted  from './pages/admin/AdminRestricted'
 import AdminHistorial   from './pages/admin/AdminHistorial'
 
-// Guard: bloquea acceso via query ?admin desde dominio público
-function QueryAdminGuard({ children }) {
+// Guard: en el dominio público de producción, bloquea cualquier acceso a /admin
+function ProductionAdminGuard({ children }) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (searchParams.has('admin')) {
-      const host = window.location.hostname
-      if (!host.startsWith('admin.')) {
-        navigate('/admin-restringido', { replace: true })
-      }
+    const host = window.location.hostname
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1')
+    const isSubdomainAdmin = host.startsWith('admin.')
+
+    // Si está en producción y NO es el subdominio admin, bloquear acceso a /admin
+    if (!isSubdomainAdmin && !isLocalhost) {
+      navigate('/admin-restringido', { replace: true })
     }
-  }, [searchParams, navigate])
+  }, [navigate, searchParams])
 
   return children
 }
 
 export default function App() {
-  const isSubdomainAdmin = window.location.hostname.startsWith('admin.')
+  const host = typeof window !== 'undefined' ? window.location.hostname : ''
+  const isSubdomainAdmin = host.startsWith('admin.')
 
-  // Subdominio admin.estilosgissel.com — solo panel
+  // Subdominio admin.estilosgissel.com — exclusivo para el panel de administración
   if (isSubdomainAdmin) {
     return (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AdminLayout />}>
-            <Route index          element={<AdminDashboard />} />
+            <Route index             element={<AdminDashboard />} />
             <Route path="inventario" element={<AdminInventario />} />
             <Route path="categorias" element={<AdminCategorias />} />
             <Route path="ventas"     element={<AdminVentas />} />
@@ -62,35 +65,40 @@ export default function App() {
   return (
     <CartProvider>
       <BrowserRouter>
-        <QueryAdminGuard>
-          <Routes>
+        <Routes>
 
-            {/* ── ADMIN — aislado, sin Navbar/Footer del cliente ── */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index              element={<AdminDashboard />} />
-              <Route path="inventario"  element={<AdminInventario />} />
-              <Route path="categorias"  element={<AdminCategorias />} />
-              <Route path="ventas"      element={<AdminVentas />} />
-              <Route path="pedidos"     element={<AdminPedidos />} />
-              <Route path="roles"       element={<AdminRoles />} />
-              <Route path="historial"   element={<AdminHistorial />} />
-            </Route>
-            <Route path="/admin-restringido" element={<AdminRestricted />} />
+          {/* ── ADMIN en dominio público: protegido con guard ── */}
+          <Route
+            path="/admin"
+            element={
+              <ProductionAdminGuard>
+                <AdminLayout />
+              </ProductionAdminGuard>
+            }
+          >
+            <Route index              element={<AdminDashboard />} />
+            <Route path="inventario"  element={<AdminInventario />} />
+            <Route path="categorias"  element={<AdminCategorias />} />
+            <Route path="ventas"      element={<AdminVentas />} />
+            <Route path="pedidos"     element={<AdminPedidos />} />
+            <Route path="roles"       element={<AdminRoles />} />
+            <Route path="historial"   element={<AdminHistorial />} />
+          </Route>
+          <Route path="/admin-restringido" element={<AdminRestricted />} />
 
-            {/* ── TIENDA PÚBLICA ── */}
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="buscar"                         element={<SearchResults />} />
-              <Route path="producto/:id"                   element={<ProductDetail />} />
-              <Route path="categoria/:category"            element={<Category />} />
-              <Route path="categoria/:category/:gender"    element={<Category />} />
-              <Route path=":categorySlug"                  element={<Category />} />
-              <Route path=":categorySlug/:gender"          element={<Category />} />
-              <Route path="*"                              element={<NotFound />} />
-            </Route>
+          {/* ── TIENDA PÚBLICA (estilosgissel.com / www.estilosgissel.com) ── */}
+          <Route path="/" element={<Layout />}>
+            <Route index                                 element={<Home />} />
+            <Route path="buscar"                         element={<SearchResults />} />
+            <Route path="producto/:id"                   element={<ProductDetail />} />
+            <Route path="categoria/:category"            element={<Category />} />
+            <Route path="categoria/:category/:gender"    element={<Category />} />
+            <Route path=":categorySlug"                  element={<Category />} />
+            <Route path=":categorySlug/:gender"          element={<Category />} />
+            <Route path="*"                              element={<NotFound />} />
+          </Route>
 
-          </Routes>
-        </QueryAdminGuard>
+        </Routes>
       </BrowserRouter>
     </CartProvider>
   )
