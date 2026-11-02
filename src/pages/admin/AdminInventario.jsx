@@ -4,6 +4,7 @@ import { useAdminAuth } from '../../hooks/useAdminAuth'
 import { useCategories } from '../../hooks/useCategories'
 import AdminAuthGate from '../../components/admin/AdminAuthGate'
 import ImageUploader from '../../components/ui/ImageUploader'
+import VoiceProductAssistant from '../../components/admin/VoiceProductAssistant'
 import {
   generateBarcode,
   generateBarcodeSvg,
@@ -53,6 +54,7 @@ export default function AdminInventario() {
   const [filterCat, setFilterCat] = useState('')
   const [qrProduct, setQrProduct] = useState(null) // producto para mostrar QR
   const [editProduct, setEditProduct] = useState(null)
+  const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false)
   const qrRef = useRef(null)
 
   // Sugerencias de autocompletado rápido basadas en el inventario actual
@@ -372,10 +374,39 @@ export default function AdminInventario() {
 
       {/* === FORMULARIO === */}
       <div className="a-card">
-        <p className="a-card-title">{editProduct ? `Editando: ${editProduct.nombre}` : 'Agregar Nuevo Producto'}</p>
-        <p className="a-card-subtitle">
-          {editProduct ? 'Modifica los campos y guarda los cambios.' : 'Completa el formulario para agregar una nueva prenda al catalogo.'}
-        </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+          <div>
+            <p className="a-card-title">{editProduct ? `Editando: ${editProduct.nombre}` : 'Agregar Nuevo Producto'}</p>
+            <p className="a-card-subtitle">
+              {editProduct ? 'Modifica los campos y guarda los cambios.' : 'Completa el formulario para agregar una nueva prenda al catalogo.'}
+            </p>
+          </div>
+
+          {!editProduct && (
+            <button
+              type="button"
+              className="a-btn a-btn-outline"
+              onClick={() => setIsVoiceAssistantOpen(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderColor: 'var(--color-gold)',
+                color: 'var(--color-gold-dark)',
+                fontWeight: 600,
+                background: '#fdfaf5'
+              }}
+              title="Llenar los campos dictando con tu voz"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="22" />
+              </svg>
+              <span>Asistente de Voz</span>
+            </button>
+          )}
+        </div>
 
         <form onSubmit={handleSave} className="a-form">
           {/* Fila 1: Nombre, Marca y Talla con autocompletado y checks rápidos */}
@@ -387,13 +418,11 @@ export default function AdminInventario() {
                 {sugerencias.nombres.length > 0 && (
                   <select
                     className="a-quick-select"
+                    value=""
                     onChange={e => {
-                      if (e.target.value) {
-                        setForm(f => ({ ...f, nombre: e.target.value }))
-                        e.target.value = ''
-                      }
+                      const val = e.target.value
+                      if (val) setForm(f => ({ ...f, nombre: val }))
                     }}
-                    defaultValue=""
                     title="Copiar nombre ya registrado"
                   >
                     <option value="" disabled>Usar nombre...</option>
@@ -426,13 +455,11 @@ export default function AdminInventario() {
                 {sugerencias.marcas.length > 0 && (
                   <select
                     className="a-quick-select"
+                    value=""
                     onChange={e => {
-                      if (e.target.value) {
-                        setForm(f => ({ ...f, marca: e.target.value }))
-                        e.target.value = ''
-                      }
+                      const val = e.target.value
+                      if (val) setForm(f => ({ ...f, marca: val }))
                     }}
-                    defaultValue=""
                     title="Copiar marca ya registrada"
                   >
                     <option value="" disabled>Elegir marca...</option>
@@ -484,13 +511,11 @@ export default function AdminInventario() {
                 {sugerencias.tallas.length > 0 && (
                   <select
                     className="a-quick-select"
+                    value=""
                     onChange={e => {
-                      if (e.target.value) {
-                        setForm(f => ({ ...f, talla: e.target.value }))
-                        e.target.value = ''
-                      }
+                      const val = e.target.value
+                      if (val) setForm(f => ({ ...f, talla: val }))
                     }}
-                    defaultValue=""
                     title="Copiar talla ya registrada"
                   >
                     <option value="" disabled>Elegir talla...</option>
@@ -616,13 +641,11 @@ export default function AdminInventario() {
               {sugerencias.descripciones.length > 0 && (
                 <select
                   className="a-quick-select"
+                  value=""
                   onChange={e => {
-                    if (e.target.value) {
-                      setForm(f => ({ ...f, descripcion: e.target.value }))
-                      e.target.value = ''
-                    }
+                    const val = e.target.value
+                    if (val) setForm(f => ({ ...f, descripcion: val }))
                   }}
-                  defaultValue=""
                   title="Copiar descripción anterior"
                 >
                   <option value="" disabled>Usar descripción anterior...</option>
@@ -970,6 +993,23 @@ export default function AdminInventario() {
           </div>
         </div>
       )}
+
+      {/* Modal de Asistente de Voz para inventario */}
+      <VoiceProductAssistant
+        isOpen={isVoiceAssistantOpen}
+        onClose={() => setIsVoiceAssistantOpen(false)}
+        categories={categories}
+        currentForm={form}
+        onFieldUpdate={(key, val) => {
+          setForm(f => ({ ...f, [key]: val }))
+        }}
+        onComplete={() => {
+          setStatusMsg({
+            text: 'Datos llenados con éxito por el Asistente de Voz. Solo selecciona la foto y presiona "Agregar Producto".',
+            type: 'success'
+          })
+        }}
+      />
     </div>
   )
 }
