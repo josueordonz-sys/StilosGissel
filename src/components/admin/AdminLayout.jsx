@@ -1,20 +1,25 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useState, useMemo } from 'react'
+import { useAdminAuth } from '../../hooks/useAdminAuth'
+import AdminAuthGate from './AdminAuthGate'
 import './AdminLayout.css'
 
-const NAV_ITEMS = [
-  { to: '/admin',             label: 'Dashboard',       icon: ChartIcon,    end: true },
-  { to: '/admin/inventario',  label: 'Inventario',      icon: BoxIcon },
-  { to: '/admin/categorias',  label: 'Categorias',      icon: TagIcon },
-  { to: '/admin/ventas',      label: 'Zona de Cobro',   icon: CashIcon },
-  { to: '/admin/historial',   label: 'Historial Días',  icon: CalendarIcon },
-  { to: '/admin/pedidos',     label: 'Pedidos Online',  icon: BagIcon },
-  { to: '/admin/roles',       label: 'Roles y Accesos', icon: ShieldIcon },
-]
-
 export default function AdminLayout() {
-  const navigate = useNavigate()
+  const auth = useAdminAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const isSubdomain = typeof window !== 'undefined' && window.location.hostname.startsWith('admin.')
+  const basePath = isSubdomain ? '' : '/admin'
+
+  const navItems = useMemo(() => [
+    { to: `${basePath}/`,           label: 'Dashboard',       icon: ChartIcon,    end: true },
+    { to: `${basePath}/inventario`,  label: 'Inventario',      icon: BoxIcon },
+    { to: `${basePath}/categorias`,  label: 'Categorias',      icon: TagIcon },
+    { to: `${basePath}/ventas`,      label: 'Zona de Cobro',   icon: CashIcon },
+    { to: `${basePath}/historial`,   label: 'Historial Días',  icon: CalendarIcon },
+    { to: `${basePath}/pedidos`,     label: 'Pedidos Online',  icon: BagIcon },
+    { to: `${basePath}/roles`,       label: 'Roles y Accesos', icon: ShieldIcon },
+  ], [basePath])
 
   useEffect(() => {
     if (!mobileMenuOpen) return undefined
@@ -25,12 +30,32 @@ export default function AdminLayout() {
     return () => window.removeEventListener('keydown', closeOnEscape)
   }, [mobileMenuOpen])
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('eg_admin_session')
-    sessionStorage.removeItem('eg_admin_role')
-    navigate('/admin', { replace: true })
-    window.location.reload()
+  // Estado de carga inicial mientras se verifica la sesión con Supabase
+  if (auth.loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: 'var(--color-bg)',
+        gap: '1rem'
+      }}>
+        <img src="/logo_sin_fondo.webp" alt="Stilos Gissel" style={{ width: '70px', height: 'auto', opacity: 0.85 }} />
+        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
+          Verificando sesión en Supabase...
+        </span>
+      </div>
+    )
   }
+
+  // Si no está autenticado en Supabase, mostrar exclusivamente el Gate de Login
+  if (!auth.isAuthorized) {
+    return <AdminAuthGate auth={auth} />
+  }
+
+  const storeUrl = isSubdomain ? 'https://www.estilosgissel.com' : '/'
 
   return (
     <div className="admin-app">
@@ -63,7 +88,7 @@ export default function AdminLayout() {
         </div>
 
         <nav className="admin-sidebar__nav" aria-label="Menu de administración">
-          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+          {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -82,12 +107,14 @@ export default function AdminLayout() {
         <div className="admin-sidebar__footer">
           <div className="admin-status-dot">
             <span className="status-dot" />
-            <span className="status-text">Supabase Conectado</span>
+            <span className="status-text" title={auth.user?.email || 'Autenticado'}>
+              {auth.user?.email ? auth.user.email.split('@')[0] : 'Supabase Conectado'}
+            </span>
           </div>
-          <a href="/" target="_blank" rel="noreferrer" className="admin-sidebar__store-link">
+          <a href={storeUrl} target="_blank" rel="noreferrer" className="admin-sidebar__store-link">
             Ver Tienda Publica
           </a>
-          <button type="button" onClick={handleLogout} className="admin-sidebar__logout">
+          <button type="button" onClick={auth.handleLogout} className="admin-sidebar__logout">
             Cerrar Sesion
           </button>
         </div>

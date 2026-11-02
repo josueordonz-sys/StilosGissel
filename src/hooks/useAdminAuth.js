@@ -1,32 +1,129 @@
-/* Hook compartido para verificar auth del admin */
-import { useState, useEffect } from 'react'
+/* Hook de autenticación verificado exclusivamente por Supabase Auth */
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabaseClient'
 
 export function useAdminAuth() {
-  const [isAuthorized, setIsAuthorized] = useState(false)
-  const [accessKeyInput, setAccessKeyInput] = useState('')
+  const [session, setSession] = useState(null)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [emailInput, setEmailInput] = useState('')
+  const [passwordInput, setPasswordInput] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' })
 
+  // Escuchar sesión activa de Supabase
   useEffect(() => {
-    const host = window.location.hostname
-    const isLocal = host === 'localhost' || host === '127.0.0.1'
-    const isAdminSubdomain = host.startsWith('admin.')
-    const stored = sessionStorage.getItem('eg_admin_session')
-    if (isAdminSubdomain || isLocal || stored === 'true') {
-      setIsAuthorized(true)
+    let mounted = true
+
+    async function checkCurrentSession() {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) {
+          console.warn('Error al verificar sesión en Supabase:', error.message)
+        }
+        if (mounted) {
+          setSession(data?.session || null)
+          setUser(data?.session?.user || null)
+          setLoading(false)
+        }
+      } catch (err) {
+        console.warn('Excepción al consultar sesión Supabase:', err)
+        if (mounted) setLoading(false)
+      }
+    }
+
+    checkCurrentSession()
+
+    // Suscribirse a cambios de estado de auth (login, logout, refresh de token)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (!mounted) return
+      setSession(currentSession)
+      setUser(currentSession?.user || null)
+      setLoading(false)
+    })
+
+    return () => {
+      mounted = false
+      subscription?.unsubscribe()
     }
   }, [])
 
-  const handleUnlock = (e) => {
-    e.preventDefault()
-    const host = window.location.hostname
-    const isLocal = host === 'localhost' || host === '127.0.0.1'
-    if (accessKeyInput === 'Gissel2026' || isLocal) {
-      setIsAuthorized(true)
-      sessionStorage.setItem('eg_admin_session', 'true')
-    } else {
-      setStatusMsg({ text: 'Clave de acceso no valida.', type: 'error' })
-    }
-  }
+  // Inicio de sesión verificado por Supabase Auth (sin códigos hardcodeados)
+  const handleLogin = useCallback(async (e) => {
+    if (e && e.preventDefault) e.preventDefault()
+    setStatusMsg({ text: '', type: '' })
 
-  return { isAuthorized, accessKeyInput, setAccessKeyInput, handleUnlock, statusMsg, setStatusMsg }
+    const cleanEmail = emailInput.trim()
+    const cleanPassword = passwordInput
+
+    if (!cleanEmail || !cleanPassword) {
+      setStatusMsg({ text: 'Por favor ingresa tu correo y contraseña.', type: 'error' })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: cleanPassword
+      })
+
+      if (error) {
+        let mensajeError = error.message
+        if (error.message.includes('Invalid login credentials')) {
+          mensajeError = 'Credenciales no válidas. Verifica tu correo y contraseña.'
+        } else if (error.message.includes('Email not confirmed')) {
+          mensajeError = 'El correo electrónico no ha sido verificado en Supabase.'
+        } else if (error.message.includes('Too many requests')) {
+          mensajeError = 'Demasiados intentos. Espera unos momentos antes de reintentar.'
+        }
+        setStatusMsg({ text: mensajeError, type: 'error' })
+      } else if (data?.user) {
+        setSession(data.session)
+        setUser(data.user)
+        setStatusMsg({ text: 'Acceso autorizado. Cargando...', type: 'success' })
+      }
+    } catch (err) {
+      setStatusMsg({ text: 'Error al conectar con Supabase: ' + err.message, type: 'error' })
+    } finally {
+      setSubmitting(false)
+    }
+  }, [emailInput, passwordInput])
+
+  // Cerrar sesión en Supabase
+  const handleLogout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('Error al cerrar sesión:', err)
+    } finally {
+      setSession(null)
+      setUser(null)
+      sessionStorage.removeItem('eg_admin_session')
+      sessionStorage.removeItem('eg_admin_role')
+      if (typeof window !== 'undefined') {
+        const isAdminSubdomain = window.location.hostname.startsWith('admin.')
+        window.location.href = isAdminSubdomain ? '/' : '/admin'
+      }
+    }
+  }, [])
+
+  const isAuthorized = Boolean(user && session)
+
+  return {
+    isAuthorized,
+    user,
+    session,
+    loading,
+    emailInput,
+    setEmailInput,
+    passwordInput,
+    setPasswordInput,
+    submitting,
+    statusMsg,
+    setStatusMsg,
+    handleLogin,
+    handleUnlock: handleLogin, // Retrocompatibilidad
+    handleLogout
+  }
 }
