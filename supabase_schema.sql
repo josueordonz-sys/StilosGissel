@@ -129,6 +129,22 @@ CREATE TABLE IF NOT EXISTS public.pedidos (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- ============ AUDITORIA DE ACCESOS ============
+CREATE TABLE IF NOT EXISTS public.admin_audit_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT,
+  exito BOOLEAN,
+  ip_address TEXT,
+  sistema_operativo TEXT,
+  es_linux BOOLEAN,
+  es_automatizado BOOLEAN,
+  user_agent TEXT,
+  resolucion TEXT,
+  zona_horaria TEXT,
+  detalle TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- ============ RLS ============
 ALTER TABLE public.propietarios     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.roles            ENABLE ROW LEVEL SECURITY;
@@ -138,41 +154,64 @@ ALTER TABLE public.productos        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.zonas_cobro      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ventas           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedidos          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 
--- Políticas PÚBLICAS (lectura para catálogo)
+-- 1. Políticas PÚBLICAS (Catálogo y pedidos de la tienda)
 DROP POLICY IF EXISTS "pub_categorias"  ON public.categorias;
 CREATE POLICY "pub_categorias"  ON public.categorias  FOR SELECT TO anon, authenticated USING (activo = true);
 
 DROP POLICY IF EXISTS "pub_productos"   ON public.productos;
-CREATE POLICY "pub_productos"   ON public.productos   FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "pub_productos"   ON public.productos   FOR SELECT TO anon, authenticated USING (publico = true OR publico IS NULL);
 
 DROP POLICY IF EXISTS "pub_insert_pedidos" ON public.pedidos;
 CREATE POLICY "pub_insert_pedidos" ON public.pedidos FOR INSERT TO anon, authenticated WITH CHECK (true);
 
--- Políticas ADMIN (gestión total — anon para dev, en prod usar service_role o auth)
+DROP POLICY IF EXISTS "audit_insert_policy" ON public.admin_audit_logs;
+CREATE POLICY "audit_insert_policy" ON public.admin_audit_logs FOR INSERT TO anon, authenticated WITH CHECK (true);
+
+-- 2. Políticas ADMIN (Gestión exclusiva para usuarios autenticados con Supabase Auth)
 DROP POLICY IF EXISTS "admin_all_categorias"  ON public.categorias;
-CREATE POLICY "admin_all_categorias"  ON public.categorias  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_categorias"  ON public.categorias  FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_productos"   ON public.productos;
-CREATE POLICY "admin_all_productos"   ON public.productos   FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_productos"   ON public.productos   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_propietarios" ON public.propietarios;
-CREATE POLICY "admin_all_propietarios" ON public.propietarios FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_propietarios" ON public.propietarios FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_zonas"       ON public.zonas_cobro;
-CREATE POLICY "admin_all_zonas"       ON public.zonas_cobro  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_zonas"       ON public.zonas_cobro  FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_ventas"      ON public.ventas;
-CREATE POLICY "admin_all_ventas"      ON public.ventas       FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_ventas"      ON public.ventas       FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_pedidos"     ON public.pedidos;
-CREATE POLICY "admin_all_pedidos"     ON public.pedidos      FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_pedidos"     ON public.pedidos      FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_roles"       ON public.roles;
-CREATE POLICY "admin_all_roles"       ON public.roles        FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_roles"       ON public.roles        FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "admin_all_users"       ON public.admin_users;
-CREATE POLICY "admin_all_users"       ON public.admin_users  FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "admin_all_users"       ON public.admin_users  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "audit_read_policy"     ON public.admin_audit_logs;
+CREATE POLICY "audit_read_policy"     ON public.admin_audit_logs FOR SELECT TO authenticated USING (true);
+
+-- 3. Función segura para apartar prendas de inventario en transferencias sin otorgar permisos de UPDATE a 'anon'
+CREATE OR REPLACE FUNCTION public.apartar_prenda_transferencia(p_id UUID, p_cantidad INT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.productos
+  SET stock = GREATEST(0, stock - p_cantidad),
+      publico = false
+  WHERE id = p_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.apartar_prenda_transferencia(UUID, INT) TO anon, authenticated;
 
 -- ============ STORAGE ============
 INSERT INTO storage.buckets (id, name, public)
@@ -184,7 +223,7 @@ CREATE POLICY "pub_read_imgs"   ON storage.objects FOR SELECT TO anon, authentic
 DROP POLICY IF EXISTS "admin_insert_imgs" ON storage.objects;
 CREATE POLICY "admin_insert_imgs" ON storage.objects FOR INSERT TO anon, authenticated WITH CHECK (bucket_id = 'productos');
 DROP POLICY IF EXISTS "admin_delete_imgs" ON storage.objects;
-CREATE POLICY "admin_delete_imgs" ON storage.objects FOR DELETE TO anon, authenticated USING (bucket_id = 'productos');
+CREATE POLICY "admin_delete_imgs" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'productos');
 
 -- ============ DATOS INICIALES ============
 -- Roles base

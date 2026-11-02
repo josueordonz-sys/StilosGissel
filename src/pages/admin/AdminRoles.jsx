@@ -99,14 +99,20 @@ export default function AdminRoles() {
       return
     }
     try {
+      // Hash SHA-256 criptográfico para nunca guardar contraseñas en texto plano
+      const msgUint8 = new TextEncoder().encode(clave_hash)
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      const safeHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
       const { error } = await supabase.from('admin_users').insert([{
         nombre: nombre.trim(),
         email: email.trim().toLowerCase(),
-        clave_hash: clave_hash,
+        clave_hash: safeHash,
         rol_id,
       }])
       if (error) throw error
-      setStatusMsg({ text: `Usuario "${nombre}" creado. Puede ingresar al panel con su clave.`, type: 'success' })
+      setStatusMsg({ text: `Usuario "${nombre}" registrado con credencial cifrada. Recuerda invitarlo también en Supabase Auth > Users para acceso directo.`, type: 'success' })
       setUserForm(EMPTY_USER)
       loadData()
     } catch (err) {

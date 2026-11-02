@@ -24,6 +24,10 @@
           "value": "max-age=63072000; includeSubDomains; preload"
         },
         {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://yibbhuauimlfabtnacwb.supabase.co https://images.unsplash.com https://api.qrserver.com; connect-src 'self' https://yibbhuauimlfabtnacwb.supabase.co wss://yibbhuauimlfabtnacwb.supabase.co https://api.ipify.org https://va.vercel-scripts.com https://vitals.vercel-insights.com; media-src 'self' data: blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
+        },
+        {
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(self), geolocation=()"
         }

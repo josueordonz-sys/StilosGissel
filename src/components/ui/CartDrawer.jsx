@@ -295,15 +295,23 @@ export default function CartDrawer() {
       try {
         for (const item of items) {
           if (item.product?.id) {
-            const currentStock = Number(item.product.stock) || 1
-            const newStock = Math.max(0, currentStock - item.quantity)
-            await supabase
-              .from('productos')
-              .update({
-                publico: false,
-                stock: newStock
-              })
-              .eq('id', item.product.id)
+            // Intentar ejecutar RPC segura con SECURITY DEFINER
+            const { error: rpcErr } = await supabase.rpc('apartar_prenda_transferencia', {
+              p_id: item.product.id,
+              p_cantidad: item.quantity
+            })
+            // Fallback si la función RPC aún no se ha ejecutado en Supabase
+            if (rpcErr) {
+              const currentStock = Number(item.product.stock) || 1
+              const newStock = Math.max(0, currentStock - item.quantity)
+              await supabase
+                .from('productos')
+                .update({
+                  publico: false,
+                  stock: newStock
+                })
+                .eq('id', item.product.id)
+            }
           }
         }
       } catch (errUp) {
