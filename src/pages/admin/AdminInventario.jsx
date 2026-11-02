@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAdminAuth } from '../../hooks/useAdminAuth'
 import { useCategories } from '../../hooks/useCategories'
@@ -54,6 +54,17 @@ export default function AdminInventario() {
   const [qrProduct, setQrProduct] = useState(null) // producto para mostrar QR
   const [editProduct, setEditProduct] = useState(null)
   const qrRef = useRef(null)
+
+  // Sugerencias de autocompletado rápido basadas en el inventario actual
+  const sugerencias = useMemo(() => {
+    const nombres = [...new Set(productos.map(p => p.nombre?.trim()).filter(Boolean))].sort()
+    const marcas = [...new Set(productos.map(p => p.marca?.trim()).filter(Boolean))].sort()
+    const tallasBase = ['XS', 'S', 'M', 'L', 'XL', '2XL', 'Única', '36', '38', '40']
+    const tallasDb = productos.map(p => p.talla?.trim()).filter(Boolean)
+    const tallas = [...new Set([...tallasBase, ...tallasDb])].filter(Boolean)
+    const descripciones = [...new Set(productos.map(p => p.descripcion?.trim()).filter(Boolean))]
+    return { nombres, marcas, tallas, descripciones }
+  }, [productos])
 
   // Cargar productos y asegurar únicamente Tienda Gissel y Tienda Shein
   const loadData = useCallback(async () => {
@@ -367,37 +378,159 @@ export default function AdminInventario() {
         </p>
 
         <form onSubmit={handleSave} className="a-form">
-          {/* Fila 1 */}
+          {/* Fila 1: Nombre, Marca y Talla con autocompletado y checks rápidos */}
           <div className="a-form-row-3">
+            {/* Nombre */}
             <div className="a-field">
-              <label htmlFor="inv-nombre" className="a-label">Nombre de la Prenda *</label>
+              <div className="a-field-header">
+                <label htmlFor="inv-nombre" className="a-label">Nombre de la Prenda *</label>
+                {sugerencias.nombres.length > 0 && (
+                  <select
+                    className="a-quick-select"
+                    onChange={e => {
+                      if (e.target.value) {
+                        setForm(f => ({ ...f, nombre: e.target.value }))
+                        e.target.value = ''
+                      }
+                    }}
+                    defaultValue=""
+                    title="Copiar nombre ya registrado"
+                  >
+                    <option value="" disabled>⚡ Usar nombre...</option>
+                    {sugerencias.nombres.map((nom, idx) => (
+                      <option key={idx} value={nom}>{nom}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
               <input
                 id="inv-nombre"
+                list="list-nombres-registrados"
                 className="a-input"
                 placeholder="Ej: Cartera Tote Bag"
                 value={form.nombre}
                 onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
+                autoComplete="off"
               />
+              <datalist id="list-nombres-registrados">
+                {sugerencias.nombres.map((nom, idx) => (
+                  <option key={idx} value={nom} />
+                ))}
+              </datalist>
             </div>
+
+            {/* Marca con datalist + checks/chips rápidos */}
             <div className="a-field">
-              <label htmlFor="inv-marca" className="a-label">Marca</label>
+              <div className="a-field-header">
+                <label htmlFor="inv-marca" className="a-label">Marca</label>
+                {sugerencias.marcas.length > 0 && (
+                  <select
+                    className="a-quick-select"
+                    onChange={e => {
+                      if (e.target.value) {
+                        setForm(f => ({ ...f, marca: e.target.value }))
+                        e.target.value = ''
+                      }
+                    }}
+                    defaultValue=""
+                    title="Copiar marca ya registrada"
+                  >
+                    <option value="" disabled>⚡ Elegir marca...</option>
+                    {sugerencias.marcas.map((m, idx) => (
+                      <option key={idx} value={m}>{m}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
               <input
                 id="inv-marca"
+                list="list-marcas-registradas"
                 className="a-input"
                 placeholder="Ej: Guess, Zara, Shein, Coach..."
                 value={form.marca}
                 onChange={e => setForm(f => ({ ...f, marca: e.target.value }))}
+                autoComplete="off"
               />
+              <datalist id="list-marcas-registradas">
+                {sugerencias.marcas.map((m, idx) => (
+                  <option key={idx} value={m} />
+                ))}
+              </datalist>
+              {/* Chips rápidos de marcas registradas */}
+              {sugerencias.marcas.length > 0 && (
+                <div className="a-quick-chips">
+                  {sugerencias.marcas.slice(0, 8).map((m, idx) => {
+                    const isSelected = form.marca?.toLowerCase() === m.toLowerCase()
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`a-quick-chip ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => setForm(f => ({ ...f, marca: isSelected ? '' : m }))}
+                        title={isSelected ? 'Deseleccionar marca' : `Seleccionar ${m}`}
+                      >
+                        {isSelected ? `✓ ${m}` : m}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </div>
+
+            {/* Talla con datalist + chips rápidos */}
             <div className="a-field">
-              <label htmlFor="inv-talla" className="a-label">Talla</label>
+              <div className="a-field-header">
+                <label htmlFor="inv-talla" className="a-label">Talla</label>
+                {sugerencias.tallas.length > 0 && (
+                  <select
+                    className="a-quick-select"
+                    onChange={e => {
+                      if (e.target.value) {
+                        setForm(f => ({ ...f, talla: e.target.value }))
+                        e.target.value = ''
+                      }
+                    }}
+                    defaultValue=""
+                    title="Copiar talla ya registrada"
+                  >
+                    <option value="" disabled>⚡ Elegir talla...</option>
+                    {sugerencias.tallas.map((t, idx) => (
+                      <option key={idx} value={t}>{t}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
               <input
                 id="inv-talla"
+                list="list-tallas-registradas"
                 className="a-input"
                 placeholder="Ej: S, M, L, XL, 38, Única..."
                 value={form.talla}
                 onChange={e => setForm(f => ({ ...f, talla: e.target.value }))}
+                autoComplete="off"
               />
+              <datalist id="list-tallas-registradas">
+                {sugerencias.tallas.map((t, idx) => (
+                  <option key={idx} value={t} />
+                ))}
+              </datalist>
+              {/* Chips rápidos de tallas */}
+              <div className="a-quick-chips">
+                {sugerencias.tallas.slice(0, 8).map((t, idx) => {
+                  const isSelected = form.talla?.toLowerCase() === t.toLowerCase()
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`a-quick-chip ${isSelected ? 'is-selected' : ''}`}
+                      onClick={() => setForm(f => ({ ...f, talla: isSelected ? '' : t }))}
+                      title={isSelected ? 'Deseleccionar talla' : `Seleccionar talla ${t}`}
+                    >
+                      {isSelected ? `✓ ${t}` : t}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
@@ -476,9 +609,31 @@ export default function AdminInventario() {
             </span>
           </div>
 
-          {/* Descripcion */}
+          {/* Descripcion con plantillas y selector rapido */}
           <div className="a-field">
-            <label htmlFor="inv-desc" className="a-label">Descripcion</label>
+            <div className="a-field-header">
+              <label htmlFor="inv-desc" className="a-label">Descripcion</label>
+              {sugerencias.descripciones.length > 0 && (
+                <select
+                  className="a-quick-select"
+                  onChange={e => {
+                    if (e.target.value) {
+                      setForm(f => ({ ...f, descripcion: e.target.value }))
+                      e.target.value = ''
+                    }
+                  }}
+                  defaultValue=""
+                  title="Copiar descripción anterior"
+                >
+                  <option value="" disabled>⚡ Usar descripción anterior...</option>
+                  {sugerencias.descripciones.slice(0, 15).map((d, idx) => (
+                    <option key={idx} value={d}>
+                      {d.length > 38 ? `${d.slice(0, 38)}...` : d}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
             <textarea
               id="inv-desc"
               className="a-input a-textarea"
@@ -486,6 +641,26 @@ export default function AdminInventario() {
               value={form.descripcion}
               onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
             />
+            {/* Chips rápidos de descripciones más usadas */}
+            {sugerencias.descripciones.length > 0 && (
+              <div className="a-quick-chips">
+                {sugerencias.descripciones.slice(0, 3).map((d, idx) => {
+                  const isSelected = form.descripcion === d
+                  const preview = d.length > 32 ? `${d.slice(0, 32)}...` : d
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`a-quick-chip ${isSelected ? 'is-selected' : ''}`}
+                      onClick={() => setForm(f => ({ ...f, descripcion: isSelected ? '' : d }))}
+                      title={d}
+                    >
+                      {isSelected ? `✓ ${preview}` : `+ "${preview}"`}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* Foto */}
