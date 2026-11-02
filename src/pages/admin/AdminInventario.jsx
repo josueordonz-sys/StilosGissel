@@ -54,6 +54,7 @@ export default function AdminInventario() {
   const [filterCat, setFilterCat] = useState('')
   const [qrProduct, setQrProduct] = useState(null) // producto para mostrar QR
   const [editProduct, setEditProduct] = useState(null)
+  const [fullscreenImage, setFullscreenImage] = useState(null) // imagen para ver en pantalla completa
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false)
   const qrRef = useRef(null)
 
@@ -134,6 +135,21 @@ export default function AdminInventario() {
     }
     setForm(f => ({ ...f, codigo_barra: f.codigo_barra || generateBarcode() }))
   }, [categories, form.categoria])
+
+  // Cerrar imagen en pantalla completa con la tecla Escape y bloquear scroll del body
+  useEffect(() => {
+    if (!fullscreenImage) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setFullscreenImage(null)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [fullscreenImage])
 
   // Generar URL única para QR de una prenda
   const generateQrUrl = (productId) => {
@@ -846,7 +862,24 @@ export default function AdminInventario() {
                 ) : filtered.map(p => (
                   <tr key={p.id}>
                     <td>
-                      <img src={p.imagen_url} alt={p.nombre} className="a-thumb" />
+                      <div className="a-thumb-container">
+                        <img
+                          src={p.imagen_url}
+                          alt={p.nombre}
+                          className="a-thumb"
+                          onClick={() => setFullscreenImage(p)}
+                          style={{ cursor: 'pointer' }}
+                          title={`Toca para ver ${p.nombre} en pantalla completa`}
+                        />
+                        <button
+                          type="button"
+                          className="a-thumb-view-btn"
+                          onClick={() => setFullscreenImage(p)}
+                          title="Ver imagen en pantalla completa"
+                        >
+                          Ver
+                        </button>
+                      </div>
                     </td>
                     <td><strong>{p.nombre}</strong></td>
                     <td>
@@ -990,6 +1023,49 @@ export default function AdminInventario() {
               <button className="a-btn a-btn-outline" onClick={() => setQrProduct(null)}>
                 Cerrar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Pantalla Completa para imagen de prenda en inventario */}
+      {fullscreenImage && (
+        <div
+          className="admin-image-lightbox"
+          onClick={() => setFullscreenImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Imagen en pantalla completa de ${fullscreenImage.nombre}`}
+        >
+          <button
+            type="button"
+            className="admin-image-lightbox__close"
+            onClick={() => setFullscreenImage(null)}
+            aria-label="Cerrar pantalla completa"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div
+            className="admin-image-lightbox__content"
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={fullscreenImage.imagen_url}
+              alt={fullscreenImage.nombre}
+              className="admin-image-lightbox__img"
+            />
+            <div className="admin-image-lightbox__info">
+              <span className="admin-image-lightbox__title">{fullscreenImage.nombre}</span>
+              {(fullscreenImage.marca || fullscreenImage.talla || fullscreenImage.precio) && (
+                <span className="admin-image-lightbox__meta">
+                  {fullscreenImage.marca && `${fullscreenImage.marca} • `}
+                  {fullscreenImage.talla && `Talla: ${fullscreenImage.talla} • `}
+                  {`L ${Number(fullscreenImage.precio || 0).toFixed(2)}`}
+                </span>
+              )}
             </div>
           </div>
         </div>
