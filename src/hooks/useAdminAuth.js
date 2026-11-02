@@ -185,7 +185,7 @@ export function useAdminAuth() {
         if (error.message.includes('Invalid login credentials')) {
           mensajeError = `Credenciales no válidas. Intentos restantes: ${MAX_FAILED_ATTEMPTS - nuevosIntentos}`
         } else if (error.message.includes('Email not confirmed')) {
-          mensajeError = 'El correo electrónico no ha sido verificado en Supabase.'
+          mensajeError = 'El correo electrónico no ha sido confirmado.'
         } else if (error.message.includes('Too many requests')) {
           mensajeError = 'Demasiados intentos. Espera unos momentos antes de reintentar.'
         }
@@ -206,7 +206,7 @@ export function useAdminAuth() {
         logAccessAttempt(cleanEmail, true, 'Acceso exitoso')
       }
     } catch (err) {
-      setStatusMsg({ text: 'Error al conectar con Supabase: ' + err.message, type: 'error' })
+      setStatusMsg({ text: 'Error de conexión con el servidor: ' + err.message, type: 'error' })
       logAccessAttempt(cleanEmail, false, err.message)
     } finally {
       setSubmitting(false)

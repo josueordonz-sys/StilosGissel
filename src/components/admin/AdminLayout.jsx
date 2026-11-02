@@ -44,13 +44,13 @@ export default function AdminLayout() {
       }}>
         <img src="/logo_sin_fondo.webp" alt="Stilos Gissel" style={{ width: '70px', height: 'auto', opacity: 0.85 }} />
         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>
-          Verificando sesión en Supabase...
+          Verificando sesión...
         </span>
       </div>
     )
   }
 
-  // Si no está autenticado en Supabase, mostrar exclusivamente el Gate de Login
+  // Si no está autenticado, mostrar exclusivamente el Gate de Login
   if (!auth.isAuthorized) {
     return <AdminAuthGate auth={auth} />
   }
@@ -108,7 +108,7 @@ export default function AdminLayout() {
           <div className="admin-status-dot">
             <span className="status-dot" />
             <span className="status-text" title={auth.user?.email || 'Autenticado'}>
-              {auth.user?.email ? auth.user.email.split('@')[0] : 'Supabase Conectado'}
+              {auth.user?.email ? auth.user.email.split('@')[0] : 'En línea'}
             </span>
           </div>
           <a href={storeUrl} target="_blank" rel="noreferrer" className="admin-sidebar__store-link">
