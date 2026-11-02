@@ -394,7 +394,8 @@ export default function AdminInventario() {
                 borderColor: 'var(--color-gold)',
                 color: 'var(--color-gold-dark)',
                 fontWeight: 600,
-                background: '#fdfaf5'
+                background: '#fdfaf5',
+                flexShrink: 0
               }}
               title="Llenar los campos dictando con tu voz"
             >
