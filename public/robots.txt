@@ -1,0 +1,9 @@
+# robots.txt para S'TILOS GISSEL (https://www.estilosgissel.com)
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin-restringido
+Disallow: /storage-img/
+
+Sitemap: https://www.estilosgissel.com/sitemap.xml
