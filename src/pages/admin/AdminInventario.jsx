@@ -55,6 +55,8 @@ export default function AdminInventario() {
   const [filterProp, setFilterProp] = useState('')
   const [filterStock, setFilterStock] = useState('')
   const [filterTalla, setFilterTalla] = useState('')
+  const [filterGenero, setFilterGenero] = useState('')
+  const [filterPrecio, setFilterPrecio] = useState('')
   const [qrProduct, setQrProduct] = useState(null) // producto para mostrar QR
   const [editProduct, setEditProduct] = useState(null)
   const [duplicatingFrom, setDuplicatingFrom] = useState(null)
@@ -416,7 +418,9 @@ export default function AdminInventario() {
   }
 
   // Indicador y reseteo de filtros activos
-  const hasActiveFilters = Boolean(search || filterCat || filterProp || filterStock || filterTalla)
+  const hasActiveFilters = Boolean(
+    search || filterCat || filterProp || filterStock || filterTalla || filterGenero || filterPrecio
+  )
 
   const clearFilters = () => {
     setSearch('')
@@ -424,38 +428,59 @@ export default function AdminInventario() {
     setFilterProp('')
     setFilterStock('')
     setFilterTalla('')
+    setFilterGenero('')
+    setFilterPrecio('')
   }
 
-  // Filtrar tabla con soporte para texto, categoría, tienda/propietario, stock y talla
-  const filtered = productos.filter(p => {
-    const q = search.trim().toLowerCase()
-    const propName = p.propietarios?.nombre || (p.propietario_id === 'tienda-shein' ? 'Tienda Shein' : 'Tienda Gissel')
+  // Filtrar tabla con soporte para texto, categoría, tienda/propietario, stock, talla, género y precio
+  const filtered = useMemo(() => {
+    const list = productos.filter(p => {
+      const q = search.trim().toLowerCase()
+      const propName = p.propietarios?.nombre || (p.propietario_id === 'tienda-shein' ? 'Tienda Shein' : 'Tienda Gissel')
 
-    const matchSearch = !q ||
-      p.nombre?.toLowerCase().includes(q) ||
-      p.marca?.toLowerCase().includes(q) ||
-      p.talla?.toLowerCase().includes(q) ||
-      p.codigo_barra?.toLowerCase().includes(q) ||
-      p.categoria?.toLowerCase().includes(q) ||
-      p.descripcion?.toLowerCase().includes(q) ||
-      propName.toLowerCase().includes(q)
+      const matchSearch = !q ||
+        p.nombre?.toLowerCase().includes(q) ||
+        p.marca?.toLowerCase().includes(q) ||
+        p.talla?.toLowerCase().includes(q) ||
+        p.codigo_barra?.toLowerCase().includes(q) ||
+        p.categoria?.toLowerCase().includes(q) ||
+        p.descripcion?.toLowerCase().includes(q) ||
+        propName.toLowerCase().includes(q)
 
-    const matchCat = !filterCat || p.categoria === filterCat
+      const matchCat = !filterCat || p.categoria === filterCat
 
-    const matchProp = !filterProp || (
-      p.propietario_id === filterProp ||
-      (filterProp === 'tienda-gissel' && propName.toLowerCase().includes('gissel')) ||
-      (filterProp === 'tienda-shein' && propName.toLowerCase().includes('shein'))
-    )
+      const matchProp = !filterProp || (
+        p.propietario_id === filterProp ||
+        (filterProp === 'tienda-gissel' && propName.toLowerCase().includes('gissel')) ||
+        (filterProp === 'tienda-shein' && propName.toLowerCase().includes('shein'))
+      )
 
-    const matchStock = !filterStock || (
-      filterStock === 'con-stock' ? p.stock > 0 : p.stock <= 0
-    )
+      const matchStock = !filterStock || (
+        filterStock === 'con-stock' ? p.stock > 0 : p.stock <= 0
+      )
 
-    const matchTalla = !filterTalla || p.talla?.trim().toLowerCase() === filterTalla.trim().toLowerCase()
+      const matchTalla = !filterTalla || p.talla?.trim().toLowerCase() === filterTalla.trim().toLowerCase()
 
-    return matchSearch && matchCat && matchProp && matchStock && matchTalla
-  })
+      const matchGenero = !filterGenero || p.genero?.toLowerCase() === filterGenero.toLowerCase()
+
+      let matchPrecio = true
+      const precioNum = Number(p.precio) || 0
+      if (filterPrecio === '0-300') matchPrecio = precioNum <= 300
+      else if (filterPrecio === '300-600') matchPrecio = precioNum >= 300 && precioNum <= 600
+      else if (filterPrecio === '600-1000') matchPrecio = precioNum >= 600 && precioNum <= 1000
+      else if (filterPrecio === '1000+') matchPrecio = precioNum > 1000
+
+      return matchSearch && matchCat && matchProp && matchStock && matchTalla && matchGenero && matchPrecio
+    })
+
+    if (filterPrecio === 'asc') {
+      return [...list].sort((a, b) => (Number(a.precio) || 0) - (Number(b.precio) || 0))
+    }
+    if (filterPrecio === 'desc') {
+      return [...list].sort((a, b) => (Number(b.precio) || 0) - (Number(a.precio) || 0))
+    }
+    return list
+  }, [productos, search, filterCat, filterProp, filterStock, filterTalla, filterGenero, filterPrecio])
 
   if (!auth.isAuthorized) return <AdminAuthGate auth={auth} />
 
@@ -1030,6 +1055,39 @@ export default function AdminInventario() {
               {sugerencias.tallas.map((t, idx) => (
                 <option key={idx} value={t}>{t}</option>
               ))}
+            </select>
+
+            {/* Filtro Género */}
+            <select
+              id="inv-filter-genero"
+              className="a-input a-select"
+              value={filterGenero}
+              onChange={e => setFilterGenero(e.target.value)}
+              style={{ minWidth: '120px', flex: '1 1 120px' }}
+              title="Filtrar por género"
+            >
+              <option value="">Género: Todos</option>
+              <option value="mujer">Mujer</option>
+              <option value="hombre">Hombre</option>
+              <option value="unisex">Unisex</option>
+            </select>
+
+            {/* Filtro Precio */}
+            <select
+              id="inv-filter-precio"
+              className="a-input a-select"
+              value={filterPrecio}
+              onChange={e => setFilterPrecio(e.target.value)}
+              style={{ minWidth: '135px', flex: '1 1 135px' }}
+              title="Filtrar o ordenar por precio"
+            >
+              <option value="">Precio: Todos</option>
+              <option value="0-300">Hasta L 300</option>
+              <option value="300-600">L 300 – L 600</option>
+              <option value="600-1000">L 600 – L 1,000</option>
+              <option value="1000+">Más de L 1,000</option>
+              <option value="asc">Precio: Menor a Mayor</option>
+              <option value="desc">Precio: Mayor a Menor</option>
             </select>
 
             {/* Botón para restablecer todos los filtros */}
