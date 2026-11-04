@@ -52,6 +52,9 @@ export default function AdminInventario() {
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' })
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
+  const [filterProp, setFilterProp] = useState('')
+  const [filterStock, setFilterStock] = useState('')
+  const [filterTalla, setFilterTalla] = useState('')
   const [qrProduct, setQrProduct] = useState(null) // producto para mostrar QR
   const [editProduct, setEditProduct] = useState(null)
   const [duplicatingFrom, setDuplicatingFrom] = useState(null)
@@ -412,16 +415,46 @@ export default function AdminInventario() {
     win.document.close()
   }
 
-  // Filtrar tabla
+  // Indicador y reseteo de filtros activos
+  const hasActiveFilters = Boolean(search || filterCat || filterProp || filterStock || filterTalla)
+
+  const clearFilters = () => {
+    setSearch('')
+    setFilterCat('')
+    setFilterProp('')
+    setFilterStock('')
+    setFilterTalla('')
+  }
+
+  // Filtrar tabla con soporte para texto, categoría, tienda/propietario, stock y talla
   const filtered = productos.filter(p => {
-    const q = search.toLowerCase()
-    const matchSearch = !search ||
+    const q = search.trim().toLowerCase()
+    const propName = p.propietarios?.nombre || (p.propietario_id === 'tienda-shein' ? 'Tienda Shein' : 'Tienda Gissel')
+
+    const matchSearch = !q ||
       p.nombre?.toLowerCase().includes(q) ||
       p.marca?.toLowerCase().includes(q) ||
       p.talla?.toLowerCase().includes(q) ||
-      p.codigo_barra?.toLowerCase().includes(q)
+      p.codigo_barra?.toLowerCase().includes(q) ||
+      p.categoria?.toLowerCase().includes(q) ||
+      p.descripcion?.toLowerCase().includes(q) ||
+      propName.toLowerCase().includes(q)
+
     const matchCat = !filterCat || p.categoria === filterCat
-    return matchSearch && matchCat
+
+    const matchProp = !filterProp || (
+      p.propietario_id === filterProp ||
+      (filterProp === 'tienda-gissel' && propName.toLowerCase().includes('gissel')) ||
+      (filterProp === 'tienda-shein' && propName.toLowerCase().includes('shein'))
+    )
+
+    const matchStock = !filterStock || (
+      filterStock === 'con-stock' ? p.stock > 0 : p.stock <= 0
+    )
+
+    const matchTalla = !filterTalla || p.talla?.trim().toLowerCase() === filterTalla.trim().toLowerCase()
+
+    return matchSearch && matchCat && matchProp && matchStock && matchTalla
   })
 
   if (!auth.isAuthorized) return <AdminAuthGate auth={auth} />
@@ -900,27 +933,122 @@ export default function AdminInventario() {
         <div className="a-card-header">
           <div>
             <p className="a-card-title">Catalogo de Productos</p>
-            <p className="a-card-subtitle">{filtered.length} resultado(s)</p>
+            <p className="a-card-subtitle">
+              {filtered.length} de {productos.length} producto(s)
+              {hasActiveFilters && ' (filtrado)'}
+            </p>
           </div>
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-            <input
-              id="inv-search"
-              className="a-input"
-              placeholder="Buscar por nombre..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ width: '200px' }}
-            />
+
+          {/* Barra de Búsqueda y Filtros */}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Buscador de texto con botón para limpiar rápido */}
+            <div style={{ position: 'relative', minWidth: '200px', flex: '1 1 200px' }}>
+              <input
+                id="inv-search"
+                className="a-input"
+                placeholder="Buscar nombre, código, marca, talla..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ width: '100%', paddingRight: search ? '28px' : '10px' }}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--color-text-muted)',
+                    fontSize: '13px',
+                    lineHeight: 1,
+                    padding: 0
+                  }}
+                  title="Limpiar texto"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Filtro Categoría */}
             <select
               id="inv-filter-cat"
               className="a-input a-select"
               value={filterCat}
               onChange={e => setFilterCat(e.target.value)}
-              style={{ width: '160px' }}
+              style={{ minWidth: '135px', flex: '1 1 135px' }}
+              title="Filtrar por categoría"
             >
-              <option value="">Todas</option>
+              <option value="">Categorías: Todas</option>
               {categories.map(c => <option key={c.slug} value={c.slug}>{c.nombre}</option>)}
             </select>
+
+            {/* Filtro Tienda / Propietario */}
+            <select
+              id="inv-filter-prop"
+              className="a-input a-select"
+              value={filterProp}
+              onChange={e => setFilterProp(e.target.value)}
+              style={{ minWidth: '135px', flex: '1 1 135px' }}
+              title="Filtrar por tienda o propietario"
+            >
+              <option value="">Tiendas: Todas</option>
+              {propietarios.map(prop => (
+                <option key={prop.id} value={prop.id}>{prop.nombre}</option>
+              ))}
+            </select>
+
+            {/* Filtro Disponibilidad Stock */}
+            <select
+              id="inv-filter-stock"
+              className="a-input a-select"
+              value={filterStock}
+              onChange={e => setFilterStock(e.target.value)}
+              style={{ minWidth: '125px', flex: '1 1 125px' }}
+              title="Filtrar por stock disponible"
+            >
+              <option value="">Stock: Todos</option>
+              <option value="con-stock">En Stock (&gt;0)</option>
+              <option value="agotado">Agotados (0)</option>
+            </select>
+
+            {/* Filtro Talla */}
+            <select
+              id="inv-filter-talla"
+              className="a-input a-select"
+              value={filterTalla}
+              onChange={e => setFilterTalla(e.target.value)}
+              style={{ minWidth: '115px', flex: '1 1 115px' }}
+              title="Filtrar por talla"
+            >
+              <option value="">Tallas: Todas</option>
+              {sugerencias.tallas.map((t, idx) => (
+                <option key={idx} value={t}>{t}</option>
+              ))}
+            </select>
+
+            {/* Botón para restablecer todos los filtros */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                className="a-btn a-btn-outline a-btn-sm"
+                onClick={clearFilters}
+                style={{
+                  color: 'var(--color-gold-dark)',
+                  borderColor: 'var(--color-gold)',
+                  whiteSpace: 'nowrap',
+                  background: '#fdfaf5'
+                }}
+                title="Quitar todos los filtros aplicados"
+              >
+                Limpiar Filtros
+              </button>
+            )}
           </div>
         </div>
 
