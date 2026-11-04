@@ -54,6 +54,7 @@ export default function AdminInventario() {
   const [filterCat, setFilterCat] = useState('')
   const [qrProduct, setQrProduct] = useState(null) // producto para mostrar QR
   const [editProduct, setEditProduct] = useState(null)
+  const [duplicatingFrom, setDuplicatingFrom] = useState(null)
   const [fullscreenImage, setFullscreenImage] = useState(null) // imagen para ver en pantalla completa
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false)
   const qrRef = useRef(null)
@@ -202,6 +203,7 @@ export default function AdminInventario() {
         await supabase.from('productos').update({ qr_code: qrUrl }).eq('id', savedId)
         setStatusMsg({ text: `Prenda "${payload.nombre}" registrada con QR y Código de Barra (${barcode}).`, type: 'success' })
       }
+      setDuplicatingFrom(null)
       setForm({ ...EMPTY_FORM, codigo_barra: generateBarcode(), categoria: categories[0]?.slug || '' })
       loadData()
     } catch (err) {
@@ -229,6 +231,7 @@ export default function AdminInventario() {
   }
 
   const startEdit = (p) => {
+    setDuplicatingFrom(null)
     setEditProduct(p)
     setForm({
       nombre: p.nombre,
@@ -251,7 +254,36 @@ export default function AdminInventario() {
 
   const cancelEdit = () => {
     setEditProduct(null)
+    setDuplicatingFrom(null)
     setForm({ ...EMPTY_FORM, codigo_barra: generateBarcode(), categoria: categories[0]?.slug || '' })
+  }
+
+  // Duplicar prenda con otra talla: copia todos los campos excepto talla y código de barra
+  const duplicarConTalla = (p) => {
+    setEditProduct(null)
+    setDuplicatingFrom(p.nombre)
+    setForm({
+      nombre: p.nombre,
+      marca: p.marca || '',
+      talla: '',                        // queda vacía para que el usuario elija la nueva talla
+      categoria: p.categoria,
+      genero: p.genero,
+      precio: p.precio,
+      descripcion: p.descripcion || '',
+      imagen_url: p.imagen_url,
+      stock: 1,                         // stock inicial de 1 para la nueva talla
+      destacado: Boolean(p.destacado),
+      nuevo: Boolean(p.nuevo),
+      publico: Boolean(p.publico),
+      codigo_barra: generateBarcode(),   // nuevo código de barra único
+      propietario_id: p.propietario_id || '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setStatusMsg({ text: `Prenda "${p.nombre}" lista. Selecciona la nueva talla y guarda.`, type: 'success' })
+    setTimeout(() => {
+      const el = document.getElementById('inv-talla')
+      if (el) el.focus()
+    }, 250)
   }
 
   // Imprimir Etiqueta física para prenda (QR con Logo + Código de Barra EAN-13)
@@ -392,9 +424,19 @@ export default function AdminInventario() {
       <div className="a-card">
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
           <div>
-            <p className="a-card-title">{editProduct ? `Editando: ${editProduct.nombre}` : 'Agregar Nuevo Producto'}</p>
+            <p className="a-card-title">
+              {editProduct
+                ? `Editando: ${editProduct.nombre}`
+                : duplicatingFrom
+                ? `Nueva Talla para: ${duplicatingFrom}`
+                : 'Agregar Nuevo Producto'}
+            </p>
             <p className="a-card-subtitle">
-              {editProduct ? 'Modifica los campos y guarda los cambios.' : 'Completa el formulario para agregar una nueva prenda al catalogo.'}
+              {editProduct
+                ? 'Modifica los campos y guarda los cambios.'
+                : duplicatingFrom
+                ? 'Se mantuvieron la descripción, fotos, precio y categoría. Selecciona la nueva talla y guarda.'
+                : 'Completa el formulario para agregar una nueva prenda al catalogo.'}
             </p>
           </div>
 
@@ -793,11 +835,11 @@ export default function AdminInventario() {
           {/* Botones */}
           <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
             <button id="inv-submit" type="submit" className="a-btn a-btn-primary">
-              {editProduct ? 'Guardar Cambios' : 'Agregar Producto'}
+              {editProduct ? 'Guardar Cambios' : duplicatingFrom ? 'Guardar Nueva Talla' : 'Agregar Producto'}
             </button>
-            {editProduct && (
+            {(editProduct || duplicatingFrom) && (
               <button type="button" className="a-btn a-btn-outline" onClick={cancelEdit}>
-                Cancelar Edicion
+                {duplicatingFrom ? 'Cancelar Copia' : 'Cancelar Edicion'}
               </button>
             )}
           </div>
@@ -924,6 +966,15 @@ export default function AdminInventario() {
                           onClick={() => startEdit(p)}
                         >
                           Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="a-btn a-btn-outline a-btn-sm"
+                          onClick={() => duplicarConTalla(p)}
+                          title="Duplicar datos de esta prenda para registrar otra talla rápidamente"
+                          style={{ borderColor: 'var(--color-gold)', color: 'var(--color-gold-dark)', fontWeight: 600 }}
+                        >
+                          + Talla
                         </button>
                         <button
                           type="button"
