@@ -159,8 +159,8 @@ export default function AdminInventario() {
   }
 
   // Guardar producto (create o update)
-  const handleSave = async (e) => {
-    e.preventDefault()
+  const handleSave = async (e, keepDataForNextSize = false) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault()
     const { nombre, precio, imagen_url, categoria } = form
     if (!nombre || !precio || !imagen_url || !categoria) {
       setStatusMsg({ text: 'Completa nombre, precio, categoria y foto.', type: 'error' })
@@ -194,6 +194,8 @@ export default function AdminInventario() {
         savedId = editProduct.id
         setStatusMsg({ text: `Producto "${payload.nombre}" actualizado con éxito.`, type: 'success' })
         setEditProduct(null)
+        setDuplicatingFrom(null)
+        setForm({ ...EMPTY_FORM, codigo_barra: generateBarcode(), categoria: categories[0]?.slug || '' })
       } else {
         const { data, error } = await supabase.from('productos').insert([payload]).select().single()
         if (error) throw error
@@ -201,10 +203,30 @@ export default function AdminInventario() {
         // Guardar QR URL en el registro
         const qrUrl = getProductQrUrl(savedId)
         await supabase.from('productos').update({ qr_code: qrUrl }).eq('id', savedId)
-        setStatusMsg({ text: `Prenda "${payload.nombre}" registrada con QR y Código de Barra (${barcode}).`, type: 'success' })
+
+        if (keepDataForNextSize) {
+          // Mantener todos los datos del formulario excepto la talla y generar nuevo código de barra
+          setDuplicatingFrom(payload.nombre)
+          setForm(prev => ({
+            ...prev,
+            talla: '',
+            codigo_barra: generateBarcode(),
+            stock: 1,
+          }))
+          setStatusMsg({
+            text: `Prenda guardada en talla "${payload.talla || 'Única'}". Todo el formulario sigue lleno: selecciona la siguiente talla y vuelve a guardar.`,
+            type: 'success'
+          })
+          setTimeout(() => {
+            const el = document.getElementById('inv-talla')
+            if (el) el.focus()
+          }, 200)
+        } else {
+          setDuplicatingFrom(null)
+          setStatusMsg({ text: `Prenda "${payload.nombre}" registrada con QR y Código de Barra (${barcode}).`, type: 'success' })
+          setForm({ ...EMPTY_FORM, codigo_barra: generateBarcode(), categoria: categories[0]?.slug || '' })
+        }
       }
-      setDuplicatingFrom(null)
-      setForm({ ...EMPTY_FORM, codigo_barra: generateBarcode(), categoria: categories[0]?.slug || '' })
       loadData()
     } catch (err) {
       if (err.message?.includes('talla') || err.details?.includes('talla')) {
@@ -617,6 +639,9 @@ export default function AdminInventario() {
                   )
                 })}
               </div>
+              <span style={{ fontSize: '0.69rem', color: 'var(--color-gold-dark)', marginTop: '4px', display: 'block' }}>
+                Tip: Si tienes varias tallas, usa abajo el botón <strong>"+ Guardar y Agregar Otra Talla"</strong>.
+              </span>
             </div>
           </div>
 
@@ -833,13 +858,37 @@ export default function AdminInventario() {
           </div>
 
           {/* Botones */}
-          <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-md)', flexWrap: 'wrap', alignItems: 'center' }}>
             <button id="inv-submit" type="submit" className="a-btn a-btn-primary">
-              {editProduct ? 'Guardar Cambios' : duplicatingFrom ? 'Guardar Nueva Talla' : 'Agregar Producto'}
+              {editProduct ? 'Guardar Cambios' : duplicatingFrom ? 'Guardar Esta Talla' : 'Agregar Producto'}
             </button>
+
+            {!editProduct && (
+              <button
+                type="button"
+                className="a-btn a-btn-outline"
+                onClick={(e) => handleSave(e, true)}
+                title="Guarda esta prenda y mantiene nombre, marca, fotos, descripción y precio para registrar la siguiente talla rápidamente"
+                style={{
+                  borderColor: 'var(--color-gold)',
+                  color: 'var(--color-gold-dark)',
+                  background: '#fdfaf5',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>Guardar y Agregar Otra Talla</span>
+              </button>
+            )}
+
             {(editProduct || duplicatingFrom) && (
               <button type="button" className="a-btn a-btn-outline" onClick={cancelEdit}>
-                {duplicatingFrom ? 'Cancelar Copia' : 'Cancelar Edicion'}
+                {duplicatingFrom ? 'Limpiar / Terminar' : 'Cancelar Edicion'}
               </button>
             )}
           </div>
