@@ -16,7 +16,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery]           = useState('')
   const [activeGender, setActiveGender]         = useState('todas')
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [dynamicBrands, setDynamicBrands]       = useState({})
+  const [productBrands, setProductBrands]       = useState([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -25,28 +25,16 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Carga de marcas dinámicas desde inventario para asignarlas a cada categoría
+  // Carga de marcas dinámicas con género desde inventario para asignarlas a cada categoría
   useEffect(() => {
     supabase
       .from('productos')
-      .select('categoria, marca')
+      .select('categoria, marca, genero')
+      .or('publico.eq.true,publico.is.null')
       .not('marca', 'is', null)
       .then(({ data }) => {
         if (data && data.length > 0) {
-          const map = {}
-          data.forEach(p => {
-            const cat = p.categoria?.toLowerCase()
-            const m = p.marca?.trim()
-            if (cat && m) {
-              if (!map[cat]) map[cat] = new Set()
-              map[cat].add(m)
-            }
-          })
-          const finalMap = {}
-          Object.keys(map).forEach(k => {
-            finalMap[k] = [...map[k]]
-          })
-          setDynamicBrands(finalMap)
+          setProductBrands(data)
         }
       })
       .catch(console.error)
@@ -100,9 +88,18 @@ export default function Navbar() {
     }))
   }, [categories])
 
-  // Marcas vienen SOLO de los productos reales ingresados en el inventario
+  // Marcas vienen SOLO de los productos reales ingresados en el inventario según género activo
   const getBrandsForCategory = (slug) => {
-    return dynamicBrands[slug] || []
+    if (!productBrands || productBrands.length === 0) return []
+    const normSlug = slug?.toLowerCase()
+    const matching = productBrands.filter(p => {
+      if (p.categoria?.toLowerCase() !== normSlug) return false
+      if (!p.marca?.trim()) return false
+      if (activeGender === 'todas') return true
+      const gen = p.genero?.toLowerCase()
+      return gen === activeGender || gen === 'unisex'
+    })
+    return [...new Set(matching.map(p => p.marca.trim()))].sort()
   }
 
   // URL destino según género activo

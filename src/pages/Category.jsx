@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
 import { useCategories } from '../hooks/useCategories'
 import ProductGrid from '../components/ui/ProductGrid'
@@ -7,17 +7,24 @@ import './Category.css'
 
 export default function Category() {
   const { category, categorySlug, gender } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const activeSlug = (categorySlug || category || 'perfumes').toLowerCase()
   const navigate = useNavigate()
   const [sortBy, setSortBy] = useState('featured')
-  const [selectedBrand, setSelectedBrand] = useState('')
-  const [selectedTalla, setSelectedTalla] = useState('')
+  const [selectedBrand, setSelectedBrand] = useState(() => searchParams.get('marca') || '')
+  const [selectedTalla, setSelectedTalla] = useState(() => searchParams.get('talla') || '')
   const [priceFilter, setPriceFilter] = useState('all')
 
-  // Reiniciar filtros y llevar la vista a la parte superior al cambiar de categoría o género
+  // Sincronizar parámetros de URL (?marca=... / ?talla=...) con el estado local
   useEffect(() => {
-    setSelectedBrand('')
-    setSelectedTalla('')
+    const brandParam = searchParams.get('marca') || ''
+    const tallaParam = searchParams.get('talla') || ''
+    setSelectedBrand(brandParam)
+    setSelectedTalla(tallaParam)
+  }, [searchParams, activeSlug, gender])
+
+  // Desplazar la vista a la parte superior al cambiar de categoría o género
+  useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     if (document.documentElement) document.documentElement.scrollTop = 0
     if (document.body) document.body.scrollTop = 0
@@ -86,12 +93,48 @@ export default function Category() {
   }, [products, sortBy, selectedBrand, selectedTalla, priceFilter])
 
   const handleGenderChange = (newGender) => {
+    const brandParam = searchParams.get('marca')
+    const query = brandParam ? `?marca=${encodeURIComponent(brandParam)}` : ''
     if (!newGender) {
-      navigate(`/${activeSlug}`)
+      navigate(`/${activeSlug}${query}`)
     } else {
-      navigate(`/${activeSlug}/${newGender}`)
+      navigate(`/${activeSlug}/${newGender}${query}`)
     }
   }
+
+  const handleBrandChange = (newBrand) => {
+    setSelectedBrand(newBrand)
+    const nextParams = new URLSearchParams(searchParams)
+    if (newBrand) {
+      nextParams.set('marca', newBrand)
+    } else {
+      nextParams.delete('marca')
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  const handleTallaChange = (newTalla) => {
+    setSelectedTalla(newTalla)
+    const nextParams = new URLSearchParams(searchParams)
+    if (newTalla) {
+      nextParams.set('talla', newTalla)
+    } else {
+      nextParams.delete('talla')
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  const matchedBrand = useMemo(() => {
+    if (!selectedBrand) return ''
+    const found = availableBrands.find(b => b.toLowerCase() === selectedBrand.toLowerCase())
+    return found || selectedBrand
+  }, [availableBrands, selectedBrand])
+
+  const matchedTalla = useMemo(() => {
+    if (!selectedTalla) return ''
+    const found = availableTallas.find(t => t.toLowerCase() === selectedTalla.toLowerCase())
+    return found || selectedTalla
+  }, [availableTallas, selectedTalla])
 
   return (
     <div className="category-page">
@@ -169,8 +212,8 @@ export default function Category() {
                 <label htmlFor="brand-select" className="overline visually-hidden">Marca</label>
                 <select
                   id="brand-select"
-                  value={selectedBrand}
-                  onChange={e => setSelectedBrand(e.target.value)}
+                  value={matchedBrand}
+                  onChange={e => handleBrandChange(e.target.value)}
                   className="sort-select"
                   aria-label="Filtrar por marca"
                 >
@@ -188,8 +231,8 @@ export default function Category() {
                 <label htmlFor="talla-select" className="overline visually-hidden">Talla</label>
                 <select
                   id="talla-select"
-                  value={selectedTalla}
-                  onChange={e => setSelectedTalla(e.target.value)}
+                  value={matchedTalla}
+                  onChange={e => handleTallaChange(e.target.value)}
                   className="sort-select"
                   aria-label="Filtrar por talla"
                 >
