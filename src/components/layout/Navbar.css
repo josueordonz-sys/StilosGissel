@@ -512,12 +512,13 @@
 }
 
 .navbar__mobile-list-icon {
-  width: 48px;
-  height: 48px;
+  width: 62px;
+  height: 62px;
   object-fit: contain;
   flex-shrink: 0;
   /* Icono en color natural — si es SVG monocromo se muestra oscuro */
-  filter: drop-shadow(0 1px 4px rgba(0,0,0,0.12));
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+  transition: transform 0.22s ease, filter 0.22s ease;
 }
 
 .navbar__mobile-list-arrow {
@@ -597,8 +598,8 @@
 }
 
 .navbar__mobile-cat-header-icon {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 1px 3px rgba(0,0,0,0.15));
@@ -690,8 +691,8 @@
     padding: 1.1rem 1.35rem;
   }
   .navbar__mobile-list-icon {
-    width: 40px;
-    height: 40px;
+    width: 54px;
+    height: 54px;
   }
   .navbar__mobile-brands-grid {
     column-gap: 1.25rem;
