@@ -1,16 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { useProducts } from '../hooks/useProducts'
+import { useCategories } from '../hooks/useCategories'
 import ProductGrid from '../components/ui/ProductGrid'
 import './SearchResults.css'
-
-const CATEGORIES = [
-  { slug: 'todos', label: 'Todas las categorias' },
-  { slug: 'perfumes', label: 'Perfumes' },
-  { slug: 'carteras', label: 'Carteras' },
-  { slug: 'sandalias', label: 'Sandalias' },
-  { slug: 'zapatos', label: 'Zapatos' }
-]
 
 export default function SearchResults() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -18,8 +11,26 @@ export default function SearchResults() {
   const [categoryFilter, setCategoryFilter] = useState('todos')
   const [genderFilter, setGenderFilter] = useState('todos')
   const [searchInput, setSearchInput] = useState(query)
+  const { categories: dbCategories } = useCategories()
+
+  useEffect(() => {
+    setSearchInput(query)
+  }, [query])
 
   const { products, loading } = useProducts({ search: query })
+
+  // Categorías dinámicas desde base de datos
+  const displayCategories = useMemo(() => {
+    const list = [{ slug: 'todos', label: 'Todas las categorías' }]
+    if (dbCategories && dbCategories.length > 0) {
+      dbCategories.forEach(c => {
+        if (c.slug?.toLowerCase() !== 'marcas') {
+          list.push({ slug: c.slug.toLowerCase(), label: c.nombre })
+        }
+      })
+    }
+    return list
+  }, [dbCategories])
 
   // Filtros adicionales en cliente
   const filteredProducts = useMemo(() => {
@@ -69,7 +80,7 @@ export default function SearchResults() {
         <div className="search-filters__group">
           <span className="overline">Categoria:</span>
           <div className="search-filters__buttons">
-            {CATEGORIES.map(cat => (
+            {displayCategories.map(cat => (
               <button
                 key={cat.slug}
                 type="button"

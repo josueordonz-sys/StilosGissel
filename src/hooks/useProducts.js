@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { sanitizeSearchQuery } from '../lib/security'
+import { filterProductsBySearchQuery } from '../lib/intelligentSearch'
 
 /**
  * Hook modular para obtener productos reales exclusivamente desde Supabase.
@@ -46,13 +47,7 @@ export function useProducts(filters = {}) {
         const maxVal = parseFloat(maxPrice)
         if (!isNaN(maxVal)) query = query.lte('precio', maxVal)
       }
-      if (search && search.trim()) {
-        const s = sanitizeSearchQuery(search.trim(), 80)
-        if (s) {
-          query = query.or(`nombre.ilike.%${s}%,descripcion.ilike.%${s}%,marca.ilike.%${s}%`)
-        }
-      }
-      if (limit) {
+      if (limit && !search) {
         query = query.limit(limit)
       }
       if (!filters.includePrivate) {
@@ -67,7 +62,15 @@ export function useProducts(filters = {}) {
         setError(supabaseError.message)
         setProducts([])
       } else {
-        setProducts(data || [])
+        let result = data || []
+        // Aplicar motor de búsqueda inteligente multi-término, fonético y morfológico
+        if (search && search.trim()) {
+          result = filterProductsBySearchQuery(result, search)
+        }
+        if (limit && limit > 0) {
+          result = result.slice(0, limit)
+        }
+        setProducts(result)
       }
     } catch (err) {
       console.warn('Error de conexion Supabase:', err)
