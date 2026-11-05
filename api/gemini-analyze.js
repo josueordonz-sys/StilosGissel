@@ -12,10 +12,20 @@ export default async function handler(req, res) {
   }
 
   // Clave de API leída de forma 100% segura en el servidor desde .env o Vercel
-  const apiKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '').trim()
+  let rawKey = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '').trim()
+  if (!rawKey) {
+    return res.status(500).json({
+      error: 'Falta configurar GEMINI_API_KEY en las variables de entorno de Vercel o en el archivo .env.'
+    })
+  }
+
+  // Sanitización: remover si por error se pegó "GEMINI_API_KEY=" o comillas
+  rawKey = rawKey.replace(/^(GEMINI_API_KEY|VITE_GEMINI_API_KEY)\s*=\s*/i, '')
+  const apiKey = rawKey.replace(/^["'`\s]+|["'`\s]+$/g, '').trim()
+
   if (!apiKey) {
     return res.status(500).json({
-      error: 'Falta configurar VITE_GEMINI_API_KEY en el archivo .env o en las variables de entorno de Vercel.'
+      error: 'La variable GEMINI_API_KEY está vacía o mal formateada en las variables de entorno.'
     })
   }
 
@@ -84,8 +94,10 @@ Responde ÚNICAMENTE un objeto JSON válido con este formato:
           const errJson = await response.json().catch(() => ({}))
           const errMsg = errJson?.error?.message || response.statusText
 
-          if (response.status === 400 && errMsg?.includes('API_KEY_INVALID')) {
-            return res.status(400).json({ error: 'La clave API de Gemini no es válida. Revisa el archivo .env.' })
+          if (errMsg?.includes('API key not valid') || errMsg?.includes('API_KEY_INVALID') || response.status === 401) {
+            return res.status(401).json({
+              error: 'La clave GEMINI_API_KEY no es válida. Revisa en Vercel (Project Settings > Environment Variables) que esté pegada exactamente igual a Google AI Studio y haz un Redeploy.'
+            })
           }
           if (response.status === 429) {
             return res.status(429).json({ error: 'Límite de cuota gratuita alcanzado temporalmente en Gemini. Espera un minuto.' })
