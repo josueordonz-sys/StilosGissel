@@ -7,7 +7,7 @@ import './ImageUploader.css'
  * Sube automáticamente al bucket 'productos' de Supabase Storage.
  * Si el bucket aún no ha sido creado en el dashboard, realiza fallback a Base64 para que nunca falle.
  */
-export default function ImageUploader({ value, onChange, label = 'Foto del Producto' }) {
+export default function ImageUploader({ value, onChange, onFileSelected, label = 'Foto del Producto' }) {
   const [uploading, setUploading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [dragActive, setDragActive] = useState(false)
@@ -121,6 +121,7 @@ export default function ImageUploader({ value, onChange, label = 'Foto del Produ
 
     setErrorMsg('')
     setUploading(true)
+    onFileSelected?.(file)
 
     try {
       // 1. Intentar subir a Supabase Storage (bucket 'productos')

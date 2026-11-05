@@ -5,6 +5,8 @@ import { useCategories } from '../../hooks/useCategories'
 import AdminAuthGate from '../../components/admin/AdminAuthGate'
 import ImageUploader from '../../components/ui/ImageUploader'
 import VoiceProductAssistant from '../../components/admin/VoiceProductAssistant'
+import GeminiConfigModal from '../../components/admin/GeminiConfigModal'
+import { analyzeGarmentWithGemini, hasGeminiApiKey } from '../../services/geminiService'
 import {
   generateBarcode,
   generateBarcodeSvg,
@@ -62,6 +64,10 @@ export default function AdminInventario() {
   const [duplicatingFrom, setDuplicatingFrom] = useState(null)
   const [fullscreenImage, setFullscreenImage] = useState(null) // imagen para ver en pantalla completa
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false)
+  const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false)
+  const [isAnalyzingAi, setIsAnalyzingAi] = useState(false)
+  const [pendingFileForAi, setPendingFileForAi] = useState(null)
+  const [hasGeminiKey, setHasGeminiKey] = useState(hasGeminiApiKey)
   const qrRef = useRef(null)
 
   // Sugerencias de autocompletado rápido basadas en el inventario actual
@@ -313,6 +319,78 @@ export default function AdminInventario() {
     }, 250)
   }
 
+  // Análisis inteligente de foto con Google Gemini Vision (autocompleta nombre, categoría y género)
+  const handleAnalyzeImageWithAi = async (file, url) => {
+    if (!hasGeminiApiKey()) {
+      setPendingFileForAi(file || url)
+      setIsGeminiModalOpen(true)
+      setStatusMsg({
+        text: 'Para autocompletar con Gemini IA, ingresa tu clave gratuita de Google AI Studio.',
+        type: 'error'
+      })
+      return
+    }
+
+    setIsAnalyzingAi(true)
+    setStatusMsg({
+      text: 'Gemini IA está analizando la prenda... (detectando nombre, categoría y género)',
+      type: 'info'
+    })
+
+    try {
+      const result = await analyzeGarmentWithGemini({
+        file: file || null,
+        imageUrl: (!file && url) ? url : null,
+        categories
+      })
+
+      setForm(prev => ({
+        ...prev,
+        nombre: result.nombre || prev.nombre,
+        categoria: result.categoria || prev.categoria,
+        genero: result.genero || prev.genero,
+        marca: prev.marca || result.marca || '',
+        descripcion: prev.descripcion || result.descripcion || ''
+      }))
+
+      setStatusMsg({
+        text: `✨ Gemini completó: "${result.nombre}" (${result.categoria} • ${result.genero}). Solo ingresa la talla y el precio.`,
+        type: 'success'
+      })
+
+      // Enfocar directamente en el campo de talla
+      setTimeout(() => {
+        const tallaInput = document.getElementById('inv-talla')
+        if (tallaInput) tallaInput.focus()
+      }, 300)
+    } catch (err) {
+      if (err.message === 'MISSING_API_KEY') {
+        setPendingFileForAi(file || url)
+        setIsGeminiModalOpen(true)
+      } else {
+        setStatusMsg({
+          text: `Aviso Gemini IA: ${err.message}`,
+          type: 'error'
+        })
+      }
+    } finally {
+      setIsAnalyzingAi(false)
+    }
+  }
+
+  const handleGeminiKeySaved = (newKey) => {
+    setHasGeminiKey(Boolean(newKey))
+    if (newKey && pendingFileForAi) {
+      const pending = pendingFileForAi
+      setPendingFileForAi(null)
+      if (typeof pending === 'string') {
+        handleAnalyzeImageWithAi(null, pending)
+      } else {
+        handleAnalyzeImageWithAi(pending, null)
+      }
+    }
+  }
+
   // Imprimir Etiqueta física para prenda (QR con Logo + Código de Barra EAN-13)
   const handlePrintEtiqueta = () => {
     if (!qrProduct) return
@@ -521,31 +599,54 @@ export default function AdminInventario() {
           </div>
 
           {!editProduct && (
-            <button
-              type="button"
-              className="a-btn a-btn-outline"
-              onClick={() => setIsVoiceAssistantOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                borderColor: 'var(--color-gold)',
-                color: 'var(--color-gold-dark)',
-                fontWeight: 600,
-                background: '#fdfaf5',
-                flexShrink: 1,
-                minWidth: 0,
-                whiteSpace: 'nowrap'
-              }}
-              title="Llenar los campos dictando con tu voz"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                <line x1="12" y1="19" x2="12" y2="22" />
-              </svg>
-              <span>Asistente de Voz</span>
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="a-btn a-btn-outline"
+                onClick={() => setIsGeminiModalOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  borderColor: hasGeminiKey ? 'var(--color-gold)' : 'var(--color-border)',
+                  color: hasGeminiKey ? 'var(--color-gold-dark)' : 'var(--color-text-muted)',
+                  fontWeight: 600,
+                  background: hasGeminiKey ? '#fdfaf5' : '#fff',
+                  flexShrink: 1,
+                  minWidth: 0,
+                  whiteSpace: 'nowrap'
+                }}
+                title="Configurar clave gratuita de Google Gemini para autocompletar prendas por foto"
+              >
+                <span>✨ Gemini IA {hasGeminiKey ? 'Activo' : 'Configurar'}</span>
+              </button>
+
+              <button
+                type="button"
+                className="a-btn a-btn-outline"
+                onClick={() => setIsVoiceAssistantOpen(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderColor: 'var(--color-gold)',
+                  color: 'var(--color-gold-dark)',
+                  fontWeight: 600,
+                  background: '#fdfaf5',
+                  flexShrink: 1,
+                  minWidth: 0,
+                  whiteSpace: 'nowrap'
+                }}
+                title="Llenar los campos dictando con tu voz"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
+                <span>Asistente de Voz</span>
+              </button>
+            </div>
           )}
         </div>
 
@@ -832,10 +933,55 @@ export default function AdminInventario() {
 
           {/* Foto */}
           <div className="a-field">
-            <span className="a-label">Foto de la Prenda *</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap', gap: '6px' }}>
+              <span className="a-label">Foto de la Prenda *</span>
+              {form.imagen_url && (
+                <button
+                  type="button"
+                  onClick={() => handleAnalyzeImageWithAi(null, form.imagen_url)}
+                  disabled={isAnalyzingAi}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-gold-dark)',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    cursor: isAnalyzingAi ? 'not-allowed' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    textDecoration: 'underline'
+                  }}
+                  title="Re-analizar foto con Gemini IA"
+                >
+                  ✨ Re-analizar con Gemini IA
+                </button>
+              )}
+            </div>
+
+            {isAnalyzingAi && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 12px',
+                background: '#fdfaf5',
+                border: '1px solid var(--color-gold)',
+                borderRadius: '6px',
+                color: 'var(--color-gold-dark)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                marginBottom: '8px'
+              }}>
+                <span style={{ fontSize: '1.1rem' }}>✨</span>
+                <span>Gemini IA analizando prenda... (detectando nombre, categoría y género)</span>
+              </div>
+            )}
+
             <ImageUploader
               value={form.imagen_url}
               onChange={url => setForm(f => ({ ...f, imagen_url: url }))}
+              onFileSelected={file => handleAnalyzeImageWithAi(file)}
             />
           </div>
 
@@ -1374,6 +1520,13 @@ export default function AdminInventario() {
             type: 'success'
           })
         }}
+      />
+
+      {/* Modal de Configuración Google Gemini IA */}
+      <GeminiConfigModal
+        isOpen={isGeminiModalOpen}
+        onClose={() => setIsGeminiModalOpen(false)}
+        onKeySaved={handleGeminiKeySaved}
       />
     </div>
   )

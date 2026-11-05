@@ -155,3 +155,4 @@ export function filterProductsBySearchQuery(products, query) {
   scored.sort((a, b) => b.score - a.score)
   return scored.map(s => s.product)
 }
+
