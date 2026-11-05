@@ -5,8 +5,7 @@ import { useCategories } from '../../hooks/useCategories'
 import AdminAuthGate from '../../components/admin/AdminAuthGate'
 import ImageUploader from '../../components/ui/ImageUploader'
 import VoiceProductAssistant from '../../components/admin/VoiceProductAssistant'
-import GeminiConfigModal from '../../components/admin/GeminiConfigModal'
-import { analyzeGarmentWithGemini, hasGeminiApiKey } from '../../services/geminiService'
+import { analyzeGarmentWithGemini } from '../../services/geminiService'
 import {
   generateBarcode,
   generateBarcodeSvg,
@@ -64,10 +63,7 @@ export default function AdminInventario() {
   const [duplicatingFrom, setDuplicatingFrom] = useState(null)
   const [fullscreenImage, setFullscreenImage] = useState(null) // imagen para ver en pantalla completa
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false)
-  const [isGeminiModalOpen, setIsGeminiModalOpen] = useState(false)
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false)
-  const [pendingFileForAi, setPendingFileForAi] = useState(null)
-  const [hasGeminiKey, setHasGeminiKey] = useState(hasGeminiApiKey)
   const qrRef = useRef(null)
 
   // Sugerencias de autocompletado rápido basadas en el inventario actual
@@ -321,16 +317,6 @@ export default function AdminInventario() {
 
   // Análisis inteligente de foto con Google Gemini Vision (autocompleta nombre, categoría y género)
   const handleAnalyzeImageWithAi = async (file, url) => {
-    if (!hasGeminiApiKey()) {
-      setPendingFileForAi(file || url)
-      setIsGeminiModalOpen(true)
-      setStatusMsg({
-        text: 'Para autocompletar con Gemini IA, ingresa tu clave gratuita de Google AI Studio.',
-        type: 'error'
-      })
-      return
-    }
-
     setIsAnalyzingAi(true)
     setStatusMsg({
       text: 'Gemini IA está analizando la prenda... (detectando nombre, categoría y género)',
@@ -354,7 +340,7 @@ export default function AdminInventario() {
       }))
 
       setStatusMsg({
-        text: `✨ Gemini completó: "${result.nombre}" (${result.categoria} • ${result.genero}). Solo ingresa la talla y el precio.`,
+        text: `Gemini completó: "${result.nombre}" (${result.categoria} • ${result.genero}). Solo ingresa la talla y el precio.`,
         type: 'success'
       })
 
@@ -364,30 +350,12 @@ export default function AdminInventario() {
         if (tallaInput) tallaInput.focus()
       }, 300)
     } catch (err) {
-      if (err.message === 'MISSING_API_KEY') {
-        setPendingFileForAi(file || url)
-        setIsGeminiModalOpen(true)
-      } else {
-        setStatusMsg({
-          text: `Aviso Gemini IA: ${err.message}`,
-          type: 'error'
-        })
-      }
+      setStatusMsg({
+        text: `Aviso Gemini IA: ${err.message}`,
+        type: 'error'
+      })
     } finally {
       setIsAnalyzingAi(false)
-    }
-  }
-
-  const handleGeminiKeySaved = (newKey) => {
-    setHasGeminiKey(Boolean(newKey))
-    if (newKey && pendingFileForAi) {
-      const pending = pendingFileForAi
-      setPendingFileForAi(null)
-      if (typeof pending === 'string') {
-        handleAnalyzeImageWithAi(null, pending)
-      } else {
-        handleAnalyzeImageWithAi(pending, null)
-      }
     }
   }
 
@@ -600,27 +568,6 @@ export default function AdminInventario() {
 
           {!editProduct && (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-              <button
-                type="button"
-                className="a-btn a-btn-outline"
-                onClick={() => setIsGeminiModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  borderColor: hasGeminiKey ? 'var(--color-gold)' : 'var(--color-border)',
-                  color: hasGeminiKey ? 'var(--color-gold-dark)' : 'var(--color-text-muted)',
-                  fontWeight: 600,
-                  background: hasGeminiKey ? '#fdfaf5' : '#fff',
-                  flexShrink: 1,
-                  minWidth: 0,
-                  whiteSpace: 'nowrap'
-                }}
-                title="Configurar clave gratuita de Google Gemini para autocompletar prendas por foto"
-              >
-                <span>✨ Gemini IA {hasGeminiKey ? 'Activo' : 'Configurar'}</span>
-              </button>
-
               <button
                 type="button"
                 className="a-btn a-btn-outline"
@@ -954,7 +901,10 @@ export default function AdminInventario() {
                   }}
                   title="Re-analizar foto con Gemini IA"
                 >
-                  ✨ Re-analizar con Gemini IA
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
+                  </svg>
+                  Re-analizar con Gemini IA
                 </button>
               )}
             </div>
@@ -973,7 +923,9 @@ export default function AdminInventario() {
                 fontWeight: 600,
                 marginBottom: '8px'
               }}>
-                <span style={{ fontSize: '1.1rem' }}>✨</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
+                </svg>
                 <span>Gemini IA analizando prenda... (detectando nombre, categoría y género)</span>
               </div>
             )}
@@ -1522,12 +1474,6 @@ export default function AdminInventario() {
         }}
       />
 
-      {/* Modal de Configuración Google Gemini IA */}
-      <GeminiConfigModal
-        isOpen={isGeminiModalOpen}
-        onClose={() => setIsGeminiModalOpen(false)}
-        onKeySaved={handleGeminiKeySaved}
-      />
     </div>
   )
 }
