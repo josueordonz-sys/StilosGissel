@@ -12,10 +12,14 @@ export const DAILY_AI_PHOTO_LIMIT = 1500
 /**
  * Consulta cuántas fotos se han analizado hoy y cuántas quedan disponibles
  */
-export function getGeminiDailyUsage() {
+export function getGeminiDailyUsage(keysCount) {
   try {
     const today = new Date().toISOString().slice(0, 10)
     const raw = localStorage.getItem('gemini_daily_usage')
+    const savedTotalKeys = Number(localStorage.getItem('gemini_total_keys')) || 1
+    const totalKeys = keysCount || savedTotalKeys
+    const limit = totalKeys * DAILY_AI_PHOTO_LIMIT
+
     if (raw) {
       const parsed = JSON.parse(raw)
       if (parsed.date === today) {
@@ -23,23 +27,26 @@ export function getGeminiDailyUsage() {
         return {
           date: today,
           used,
-          remaining: Math.max(0, DAILY_AI_PHOTO_LIMIT - used),
-          limit: DAILY_AI_PHOTO_LIMIT
+          remaining: Math.max(0, limit - used),
+          limit,
+          totalKeys
         }
       }
     }
     return {
       date: today,
       used: 0,
-      remaining: DAILY_AI_PHOTO_LIMIT,
-      limit: DAILY_AI_PHOTO_LIMIT
+      remaining: limit,
+      limit,
+      totalKeys
     }
   } catch {
     return {
       date: new Date().toISOString().slice(0, 10),
       used: 0,
       remaining: DAILY_AI_PHOTO_LIMIT,
-      limit: DAILY_AI_PHOTO_LIMIT
+      limit: DAILY_AI_PHOTO_LIMIT,
+      totalKeys: 1
     }
   }
 }
@@ -47,23 +54,28 @@ export function getGeminiDailyUsage() {
 /**
  * Incrementa el contador de fotos analizadas hoy
  */
-export function incrementGeminiDailyUsage() {
+export function incrementGeminiDailyUsage(totalKeys = 1) {
   try {
     const today = new Date().toISOString().slice(0, 10)
-    const current = getGeminiDailyUsage()
+    if (totalKeys) {
+      localStorage.setItem('gemini_total_keys', String(totalKeys))
+    }
+    const current = getGeminiDailyUsage(totalKeys)
     const newUsed = current.used + 1
     localStorage.setItem('gemini_daily_usage', JSON.stringify({
       date: today,
       count: newUsed
     }))
+    const limit = (totalKeys || current.totalKeys || 1) * DAILY_AI_PHOTO_LIMIT
     return {
       date: today,
       used: newUsed,
-      remaining: Math.max(0, DAILY_AI_PHOTO_LIMIT - newUsed),
-      limit: DAILY_AI_PHOTO_LIMIT
+      remaining: Math.max(0, limit - newUsed),
+      limit,
+      totalKeys: totalKeys || current.totalKeys || 1
     }
   } catch {
-    return getGeminiDailyUsage()
+    return getGeminiDailyUsage(totalKeys)
   }
 }
 
@@ -186,8 +198,9 @@ export async function analyzeGarmentWithGemini({ file, imageUrl, categories = []
     throw error
   }
 
-  // Incrementar conteo diario exitoso
-  const usage = incrementGeminiDailyUsage()
+  // Incrementar conteo diario exitoso (adaptado al número de claves activas)
+  const totalKeys = data.totalKeys || 1
+  const usage = incrementGeminiDailyUsage(totalKeys)
 
   return {
     nombre: (data.nombre || '').trim(),
@@ -195,6 +208,8 @@ export async function analyzeGarmentWithGemini({ file, imageUrl, categories = []
     genero: (data.genero || 'mujer').trim(),
     marca: (data.marca || '').trim(),
     descripcion: (data.descripcion || '').trim(),
-    dailyUsage: usage
+    dailyUsage: usage,
+    activeKeyIndex: data.activeKeyIndex || 1,
+    totalKeys
   }
 }

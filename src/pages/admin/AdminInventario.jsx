@@ -953,7 +953,7 @@ export default function AdminInventario() {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
                       </svg>
-                      <span>IA: <strong>{aiUsage.remaining}</strong> fotos disponibles hoy</span>
+                      <span>IA: <strong>{aiUsage.remaining}</strong> fotos disponibles hoy{aiUsage.totalKeys > 1 ? ` (${aiUsage.totalKeys} APIs)` : ''}</span>
                     </>
                   )}
                 </span>

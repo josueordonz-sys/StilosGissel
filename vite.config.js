@@ -28,7 +28,9 @@ function geminiDevPlugin(env) {
 
               // Inyectar claves del .env a process.env para el handler
               process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || env.GEMINI_API_KEY || env.VITE_GEMINI_API_KEY
+              process.env.GEMINI_API_KEY_2 = process.env.GEMINI_API_KEY_2 || env.GEMINI_API_KEY_2 || env.VITE_GEMINI_API_KEY_2
               process.env.VITE_GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY || env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY
+              process.env.VITE_GEMINI_API_KEY_2 = process.env.VITE_GEMINI_API_KEY_2 || env.VITE_GEMINI_API_KEY_2 || env.GEMINI_API_KEY_2
 
               const mockRes = {
                 setHeader: (k, v) => res.setHeader(k, v),
