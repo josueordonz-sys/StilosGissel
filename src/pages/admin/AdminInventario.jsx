@@ -5,7 +5,7 @@ import { useCategories } from '../../hooks/useCategories'
 import AdminAuthGate from '../../components/admin/AdminAuthGate'
 import ImageUploader from '../../components/ui/ImageUploader'
 import VoiceProductAssistant from '../../components/admin/VoiceProductAssistant'
-import { analyzeGarmentWithGemini } from '../../services/geminiService'
+import { analyzeGarmentWithGemini, getGeminiDailyUsage, DAILY_AI_PHOTO_LIMIT } from '../../services/geminiService'
 import {
   generateBarcode,
   generateBarcodeSvg,
@@ -64,7 +64,28 @@ export default function AdminInventario() {
   const [fullscreenImage, setFullscreenImage] = useState(null) // imagen para ver en pantalla completa
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false)
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false)
+  const [aiCooldownSeconds, setAiCooldownSeconds] = useState(0)
+  const [aiUsage, setAiUsage] = useState(() => getGeminiDailyUsage())
   const qrRef = useRef(null)
+
+  // Temporizador regresivo en vivo para enfriamiento de IA (cooldown)
+  useEffect(() => {
+    if (aiCooldownSeconds <= 0) return
+    const timer = setInterval(() => {
+      setAiCooldownSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          setStatusMsg({
+            text: 'Tiempo de espera completado. Ya puedes volver a analizar fotos con Gemini IA.',
+            type: 'info'
+          })
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [aiCooldownSeconds])
 
   // Sugerencias de autocompletado rápido basadas en el inventario actual
   const sugerencias = useMemo(() => {
@@ -317,6 +338,14 @@ export default function AdminInventario() {
 
   // Análisis inteligente de foto con Google Gemini Vision (autocompleta nombre, categoría y género)
   const handleAnalyzeImageWithAi = async (file, url) => {
+    if (aiCooldownSeconds > 0) {
+      setStatusMsg({
+        text: `Espera ${aiCooldownSeconds} segundos para que se restablezca el límite temporal de fotos en Gemini.`,
+        type: 'warning'
+      })
+      return
+    }
+
     setIsAnalyzingAi(true)
     setStatusMsg({
       text: 'Gemini IA está analizando la prenda... (detectando nombre, categoría y género)',
@@ -330,6 +359,9 @@ export default function AdminInventario() {
         categories
       })
 
+      const usage = result.dailyUsage || getGeminiDailyUsage()
+      setAiUsage(usage)
+
       setForm(prev => ({
         ...prev,
         nombre: result.nombre || prev.nombre,
@@ -340,7 +372,7 @@ export default function AdminInventario() {
       }))
 
       setStatusMsg({
-        text: `Gemini completó: "${result.nombre}" (${result.categoria} • ${result.genero}). Solo ingresa la talla y el precio.`,
+        text: `Gemini completó: "${result.nombre}" (${result.categoria} • ${result.genero}). Tienes ${usage.remaining} fotos restantes hoy. Solo ingresa la talla y el precio.`,
         type: 'success'
       })
 
@@ -350,10 +382,19 @@ export default function AdminInventario() {
         if (tallaInput) tallaInput.focus()
       }, 300)
     } catch (err) {
-      setStatusMsg({
-        text: `Aviso Gemini IA: ${err.message}`,
-        type: 'error'
-      })
+      if (err.isRateLimit) {
+        const wait = err.retryAfter || 60
+        setAiCooldownSeconds(wait)
+        setStatusMsg({
+          text: `Aviso Gemini IA: Límite de cuota temporal alcanzado. Podrás volver a usar la IA en ${wait} segundos. Tienes ${aiUsage.remaining} fotos disponibles hoy.`,
+          type: 'error'
+        })
+      } else {
+        setStatusMsg({
+          text: `Aviso Gemini IA: ${err.message}`,
+          type: 'error'
+        })
+      }
     } finally {
       setIsAnalyzingAi(false)
     }
@@ -880,34 +921,99 @@ export default function AdminInventario() {
 
           {/* Foto */}
           <div className="a-field">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap', gap: '6px' }}>
-              <span className="a-label">Foto de la Prenda *</span>
-              {form.imagen_url && (
-                <button
-                  type="button"
-                  onClick={() => handleAnalyzeImageWithAi(null, form.imagen_url)}
-                  disabled={isAnalyzingAi}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '8px' }}>
+              <span className="a-label" style={{ marginBottom: 0 }}>Foto de la Prenda *</span>
+              
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {/* Indicador de cuota y disponibilidad de fotos */}
+                <span
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--color-gold-dark)',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    cursor: isAnalyzingAi ? 'not-allowed' : 'pointer',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    padding: '3px 9px',
+                    borderRadius: '12px',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    textDecoration: 'underline'
+                    gap: '5px',
+                    background: aiCooldownSeconds > 0 ? '#fffbeb' : '#fdfaf5',
+                    color: aiCooldownSeconds > 0 ? '#b45309' : 'var(--color-gold-dark)',
+                    border: `1px solid ${aiCooldownSeconds > 0 ? '#fde68a' : 'var(--color-gold)'}`
                   }}
-                  title="Re-analizar foto con Gemini IA"
+                  title={`Tienes ${aiUsage.remaining} fotos restantes hoy de ${aiUsage.limit}`}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
-                  </svg>
-                  Re-analizar con Gemini IA
-                </button>
-              )}
+                  {aiCooldownSeconds > 0 ? (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <span>Disponible en: <strong>{aiCooldownSeconds}s</strong></span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
+                      </svg>
+                      <span>IA: <strong>{aiUsage.remaining}</strong> fotos disponibles hoy</span>
+                    </>
+                  )}
+                </span>
+
+                {form.imagen_url && (
+                  <button
+                    type="button"
+                    onClick={() => handleAnalyzeImageWithAi(null, form.imagen_url)}
+                    disabled={isAnalyzingAi || aiCooldownSeconds > 0}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: aiCooldownSeconds > 0 ? 'var(--color-text-muted)' : 'var(--color-gold-dark)',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: (isAnalyzingAi || aiCooldownSeconds > 0) ? 'not-allowed' : 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      textDecoration: 'underline'
+                    }}
+                    title={aiCooldownSeconds > 0 ? `Espera ${aiCooldownSeconds}s` : "Re-analizar foto con Gemini IA"}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"/>
+                    </svg>
+                    {aiCooldownSeconds > 0 ? `Espera ${aiCooldownSeconds}s` : 'Re-analizar con Gemini IA'}
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Aviso visual con cuenta regresiva si se alcanzó el límite temporal */}
+            {aiCooldownSeconds > 0 && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                background: '#fffbeb',
+                border: '1px solid #f59e0b',
+                borderRadius: '8px',
+                color: '#92400e',
+                fontSize: '0.82rem',
+                marginBottom: '10px',
+                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.08)'
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.2" style={{ flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <div style={{ flex: 1 }}>
+                  <div>
+                    <strong>Límite temporal alcanzado:</strong> podrás volver a analizar fotos en <strong>{aiCooldownSeconds} segundos</strong>.
+                  </div>
+                  <div style={{ fontSize: '0.74rem', marginTop: '3px', color: '#b45309' }}>
+                    Control de cuota: tienes <strong>{aiUsage.remaining}</strong> fotos disponibles hoy (de {aiUsage.limit} gratis al día).
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isAnalyzingAi && (
               <div style={{

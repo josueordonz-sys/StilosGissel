@@ -99,8 +99,12 @@ Responde ÚNICAMENTE un objeto JSON válido con este formato:
               error: 'La clave GEMINI_API_KEY no es válida. Revisa en Vercel (Project Settings > Environment Variables) que esté pegada exactamente igual a Google AI Studio y haz un Redeploy.'
             })
           }
-          if (response.status === 429) {
-            return res.status(429).json({ error: 'Límite de cuota gratuita alcanzado temporalmente en Gemini. Espera un minuto.' })
+          if (response.status === 429 || errMsg?.toLowerCase().includes('quota') || errMsg?.toLowerCase().includes('resource_exhausted')) {
+            return res.status(429).json({
+              error: 'Límite de cuota alcanzado temporalmente en Gemini. Espera 60 segundos.',
+              isRateLimit: true,
+              retryAfter: 60
+            })
           }
 
           lastError = new Error(`Gemini (${model}): ${errMsg}`)

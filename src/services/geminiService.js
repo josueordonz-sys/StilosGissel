@@ -7,6 +7,66 @@
  *   el cual lee GEMINI_API_KEY o VITE_GEMINI_API_KEY exclusivamente desde el archivo .env o variables de Vercel.
  */
 
+export const DAILY_AI_PHOTO_LIMIT = 1500
+
+/**
+ * Consulta cuántas fotos se han analizado hoy y cuántas quedan disponibles
+ */
+export function getGeminiDailyUsage() {
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const raw = localStorage.getItem('gemini_daily_usage')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed.date === today) {
+        const used = Number(parsed.count) || 0
+        return {
+          date: today,
+          used,
+          remaining: Math.max(0, DAILY_AI_PHOTO_LIMIT - used),
+          limit: DAILY_AI_PHOTO_LIMIT
+        }
+      }
+    }
+    return {
+      date: today,
+      used: 0,
+      remaining: DAILY_AI_PHOTO_LIMIT,
+      limit: DAILY_AI_PHOTO_LIMIT
+    }
+  } catch {
+    return {
+      date: new Date().toISOString().slice(0, 10),
+      used: 0,
+      remaining: DAILY_AI_PHOTO_LIMIT,
+      limit: DAILY_AI_PHOTO_LIMIT
+    }
+  }
+}
+
+/**
+ * Incrementa el contador de fotos analizadas hoy
+ */
+export function incrementGeminiDailyUsage() {
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const current = getGeminiDailyUsage()
+    const newUsed = current.used + 1
+    localStorage.setItem('gemini_daily_usage', JSON.stringify({
+      date: today,
+      count: newUsed
+    }))
+    return {
+      date: today,
+      used: newUsed,
+      remaining: Math.max(0, DAILY_AI_PHOTO_LIMIT - newUsed),
+      limit: DAILY_AI_PHOTO_LIMIT
+    }
+  } catch {
+    return getGeminiDailyUsage()
+  }
+}
+
 /**
  * Redimensiona y comprime una imagen a un tamaño óptimo para Gemini (máx 1200px)
  * Devuelve { mimeType, data } con el Base64 puro.
@@ -119,14 +179,22 @@ export async function analyzeGarmentWithGemini({ file, imageUrl, categories = []
   }
 
   if (!response.ok) {
-    throw new Error(data.error || `Error del servidor (${response.status})`)
+    const error = new Error(data.error || `Error del servidor (${response.status})`)
+    error.status = response.status
+    error.isRateLimit = response.status === 429 || Boolean(data.isRateLimit) || data.error?.toLowerCase().includes('límite') || data.error?.toLowerCase().includes('cuota')
+    error.retryAfter = data.retryAfter || 60
+    throw error
   }
+
+  // Incrementar conteo diario exitoso
+  const usage = incrementGeminiDailyUsage()
 
   return {
     nombre: (data.nombre || '').trim(),
     categoria: (data.categoria || '').trim(),
     genero: (data.genero || 'mujer').trim(),
     marca: (data.marca || '').trim(),
-    descripcion: (data.descripcion || '').trim()
+    descripcion: (data.descripcion || '').trim(),
+    dailyUsage: usage
   }
 }
